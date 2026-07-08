@@ -1,0 +1,4 @@
+guarda "pan, leche, huevos" en "compra.txt"
+añade ", fruta" a "compra.txt"
+el texto es contenido de "compra.txt"
+escribe "Lista de la compra: {texto}"

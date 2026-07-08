@@ -1,0 +1,8 @@
+define fibonacci con n:
+    si n es menor que 2:
+        devuelve n
+    fin
+    devuelve (fibonacci con (n - 1) + fibonacci con (n - 2))
+fin
+
+escribe fibonacci con 10

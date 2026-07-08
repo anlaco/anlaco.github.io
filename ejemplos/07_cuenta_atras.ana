@@ -1,0 +1,6 @@
+la cuenta es 5
+mientras cuenta es mayor que 0:
+    escribe "{cuenta}..."
+    la cuenta es (la cuenta - 1)
+fin
+escribe "¡Despegue!"

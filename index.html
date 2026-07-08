@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ana — playground</title>
+<style>
+  :root {
+    --fondo: #fdfcf8; --tinta: #2b2b2b; --borde: #d8d4c8;
+    --acento: #2e6e4e; --acento-claro: #eaf3ee; --salida-fondo: #23272e;
+    --salida-tinta: #e8e6df;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --fondo: #1e2126; --tinta: #e8e6df; --borde: #3a3f47;
+      --acento: #6fbf94; --acento-claro: #26332c;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--fondo); color: var(--tinta);
+    font: 16px/1.5 Georgia, "Times New Roman", serif;
+    display: flex; flex-direction: column; min-height: 100vh;
+  }
+  header { padding: 1rem 1.5rem 0.5rem; }
+  h1 { margin: 0; font-size: 1.5rem; font-weight: normal; }
+  h1 b { color: var(--acento); }
+  .sub { margin: 0.15rem 0 0; opacity: 0.75; font-size: 0.95rem; }
+  .barra {
+    display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center;
+    padding: 0.75rem 1.5rem;
+  }
+  button, select {
+    font: inherit; font-size: 0.95rem; padding: 0.4rem 0.9rem;
+    border: 1px solid var(--borde); border-radius: 6px;
+    background: var(--fondo); color: var(--tinta); cursor: pointer;
+  }
+  button:hover:enabled { background: var(--acento-claro); }
+  button:disabled { opacity: 0.45; cursor: wait; }
+  #ejecutar { background: var(--acento); color: #fff; border-color: var(--acento); }
+  #ejecutar:hover:enabled { background: #245a40; }
+  #estado { font-size: 0.9rem; opacity: 0.75; margin-left: auto; }
+  main {
+    flex: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;
+    padding: 0 1.5rem 1rem; min-height: 0;
+  }
+  @media (max-width: 800px) { main { grid-template-columns: 1fr; } }
+  textarea, #salida {
+    width: 100%; height: 100%; min-height: 320px; margin: 0;
+    font: 15px/1.5 "DejaVu Sans Mono", Consolas, monospace;
+    border: 1px solid var(--borde); border-radius: 8px; padding: 0.9rem;
+  }
+  textarea {
+    background: var(--fondo); color: var(--tinta);
+    resize: vertical; outline: none; white-space: pre; overflow-x: auto;
+  }
+  textarea:focus { border-color: var(--acento); }
+  #salida {
+    background: var(--salida-fondo); color: var(--salida-tinta);
+    overflow: auto; white-space: pre-wrap;
+  }
+  footer { padding: 0 1.5rem 1rem; font-size: 0.85rem; opacity: 0.65; }
+</style>
+</head>
+<body>
+<header>
+  <h1><b>Ana</b> — el playground</h1>
+  <p class="sub">Anlaco v0.1 corriendo en tu navegador. Nada que instalar.</p>
+</header>
+
+<div class="barra">
+  <button id="ejecutar" disabled>▶ Ejecutar</button>
+  <button id="traducir" disabled>Traducir es↔en</button>
+  <button id="formatear" disabled>Formatear</button>
+  <select id="ejemplos" disabled>
+    <option value="">Cargar un ejemplo…</option>
+  </select>
+  <span id="estado">Cargando Ana (la primera vez baja ~10 MB)…</span>
+</div>
+
+<main>
+  <textarea id="editor" spellcheck="false" aria-label="Editor de código Anlaco">« aquí »</textarea>
+  <pre id="salida" aria-label="Salida del programa">La salida de tu programa aparecerá aquí.</pre>
+</main>
+
+<footer>
+  Consejos: Ctrl+Intro ejecuta · <code>la respuesta a</code> pregunta con un
+  diálogo del navegador · los archivos que guardes viven en memoria y se
+  borran al recargar · un bucle infinito congela la pestaña (recárgala).
+</footer>
+
+<script src="rueda.js"></script>
+<script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"></script>
+<script>
+const PROGRAMA_INICIAL = `# Mi primer programa
+el nombre es la respuesta a "¿Cómo te llamas?"
+escribe "¡Hola, {nombre}! Esto es Ana en tu navegador."
+para cada n del 1 al 3:
+    escribe "{n}..."
+fin
+escribe "¿A que se lee como un libro?"
+`;
+
+const EJEMPLOS = [
+  "01_hola.ana", "02_precio_iva.ana", "03_calculo_con_palabras.ana",
+  "04_votar.ana", "05_frutas.ana", "06_tabla_del_7.ana",
+  "07_cuenta_atras.ana", "08_saludo.ana", "09_fibonacci.ana",
+  "10_lista_compra.ana", "11_adivina.ana", "12_archivo.ana",
+  "13_logica.ana", "14_nota_media.ana", "15_restaurante.ana",
+  "en/01_hola.ana", "en/04_votar.ana", "en/09_fibonacci.ana",
+];
+
+// El puente: la E/S del intérprete conectada a la página.
+const PUENTE = `
+import js
+from anlaco.lexer import detectar_idioma
+from anlaco.parser import parse
+from anlaco.interpreter import Interprete
+from anlaco.errors import ErrorDeAnlaco
+from anlaco.cli import presentar_error
+from anlaco.emisor import traducir, formatear
+
+class SalidaWeb:
+    def __init__(self):
+        self.partes = []
+
+    def write(self, texto):
+        self.partes.append(str(texto))
+
+    def flush(self):
+        pass
+
+    @property
+    def texto(self):
+        return "".join(self.partes)
+
+class EntradaWeb:
+    """'respuesta a' pregunta con el diálogo del navegador."""
+
+    def __init__(self, salida):
+        self.salida = salida
+
+    def readline(self):
+        lineas = self.salida.texto.rstrip("\\n").split("\\n")
+        pregunta = lineas[-1] if lineas else "..."
+        contestado = js.window.prompt(pregunta)
+        if contestado is None:
+            return ""
+        self.salida.write(str(contestado) + "\\n")
+        return str(contestado) + "\\n"
+
+def ejecutar_web(fuente):
+    salida = SalidaWeb()
+    try:
+        idioma = detectar_idioma(fuente)
+        programa = parse(fuente, idioma)
+        interprete = Interprete(entrada=EntradaWeb(salida), salida=salida, idioma=idioma)
+        interprete.ejecutar(programa)
+    except ErrorDeAnlaco as error:
+        salida.write(presentar_error(error, fuente) + "\\n")
+    return salida.texto
+
+MARCA_ERROR = "\\x00"
+
+def traducir_web(fuente):
+    try:
+        destino = "en" if detectar_idioma(fuente) == "es" else "es"
+        return traducir(fuente, destino)
+    except ErrorDeAnlaco as error:
+        return MARCA_ERROR + presentar_error(error, fuente)
+
+def formatear_web(fuente):
+    try:
+        return formatear(fuente)
+    except ErrorDeAnlaco as error:
+        return MARCA_ERROR + presentar_error(error, fuente)
+`;
+
+const $ = (id) => document.getElementById(id);
+let pyodide = null;
+
+function estado(texto) { $("estado").textContent = texto; }
+
+async function arrancar() {
+  $("editor").value = PROGRAMA_INICIAL;
+  pyodide = await loadPyodide();
+  estado("Instalando el intérprete…");
+  await pyodide.loadPackage("micropip");
+  const micropip = pyodide.pyimport("micropip");
+  await micropip.install(new URL(ANLACO_WHEEL, location.href).href);
+  pyodide.runPython(PUENTE);
+  for (const boton of ["ejecutar", "traducir", "formatear", "ejemplos"]) {
+    $(boton).disabled = false;
+  }
+  estado("Ana está lista.");
+}
+
+// Llama a una función del puente. Los errores de Anlaco vuelven ya
+// presentados: como salida normal (ejecutar) o marcados con \x00
+// (traducir/formatear), en cuyo caso no se toca el editor.
+function conAnlaco(nombre, alEditor = false) {
+  const fuente = $("editor").value;
+  try {
+    const resultado = pyodide.globals.get(nombre)(fuente);
+    if (resultado.startsWith("\x00")) {
+      $("salida").textContent = resultado.slice(1);
+    } else if (alEditor) {
+      $("editor").value = resultado;
+      $("salida").textContent = "Hecho. Mira el editor.";
+    } else {
+      $("salida").textContent = resultado || "(el programa no escribió nada)";
+    }
+  } catch (excepcion) {
+    $("salida").textContent = `Algo se rompió por dentro:\n${excepcion.message}`;
+  }
+}
+
+$("ejecutar").addEventListener("click", () => {
+  $("salida").textContent = "";
+  conAnlaco("ejecutar_web");
+});
+$("traducir").addEventListener("click", () => conAnlaco("traducir_web", true));
+$("formatear").addEventListener("click", () => conAnlaco("formatear_web", true));
+
+// En el repo de desarrollo los ejemplos viven en ../espec/ejemplos/;
+// en la web publicada, en ejemplos/ junto a la página.
+$("ejemplos").addEventListener("change", async (evento) => {
+  const nombre = evento.target.value;
+  if (!nombre) return;
+  let respuesta = await fetch(`ejemplos/${nombre}`);
+  if (!respuesta.ok) respuesta = await fetch(`../espec/ejemplos/${nombre}`);
+  $("editor").value = await respuesta.text();
+  $("salida").textContent = "Ejemplo cargado. Pulsa ▶ Ejecutar.";
+});
+
+$("editor").addEventListener("keydown", (evento) => {
+  if (evento.ctrlKey && evento.key === "Enter" && !$("ejecutar").disabled) {
+    $("ejecutar").click();
+  }
+});
+
+for (const nombre of EJEMPLOS) {
+  const opcion = document.createElement("option");
+  opcion.value = nombre;
+  opcion.textContent = nombre.replace(".ana", "").replace("en/", "🇬🇧 ");
+  $("ejemplos").appendChild(opcion);
+}
+
+arrancar().catch((excepcion) => estado(`No pude arrancar: ${excepcion.message}`));
+</script>
+</body>
+</html>

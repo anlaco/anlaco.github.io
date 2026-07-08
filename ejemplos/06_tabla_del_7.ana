@@ -1,0 +1,7 @@
+# La tabla del 7
+para cada n del 1 al 10:
+    escribe "7 x {n} = {7 * n}"
+fin
+repite 3 veces:
+    escribe "¡Me la sé!"
+fin

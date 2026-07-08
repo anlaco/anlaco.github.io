@@ -1,0 +1,7 @@
+las notas son [7, 9, 6, 8]
+la suma es 0
+para cada nota en notas:
+    la suma es (la suma + la nota)
+fin
+la media es (la suma / cantidad de notas)
+escribe "La nota media es {media}"
