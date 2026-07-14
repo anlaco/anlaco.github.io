@@ -1,14 +1,21 @@
-// Worker ejecutor: corre el binario .wasm en el motor del navegador.
+// Worker de Ana: instancia anac.wasm (la cadena Ana autoalojada) y le pasa
+// el programa del usuario en modo «ejecutar» — el mismo intérprete que
+// corre `anac ejecutar programa.ana` en la terminal, aquí en el navegador.
 //
-// Se lanza uno nuevo por cada corrida y se mata con terminate() si el
-// usuario pulsa Detener — por eso un bucle infinito ya no congela nada.
+// El shim WASI es el mismo patrón que usaba el antiguo ejecutor.js para
+// los programas ya compilados a wasm por Pyodide; aquí además añade
+// args_sizes_get/args_get porque anac.wasm es un programa CLI de verdad
+// que lee sys.argv (["anac", "ejecutar", "programa.ana"]).
 //
-// El programa compilado habla WASI (las mismas seis llamadas que usa
-// con wasmtime); aquí se las damos en JavaScript:
+// Se lanza un worker nuevo por cada corrida y se mata con terminate() si
+// el usuario pulsa Detener — por eso un bucle infinito no congela nada.
+//
 //   fd_write   → la salida (y los archivos)
 //   fd_read    → el teclado (esperando por SharedArrayBuffer) y los archivos
 //   path_open  → archivos en memoria, bajo el directorio preabierto fd 3
+//                (aquí vive preludio_es.wat y programa.ana)
 //   fd_close, random_get, proc_exit
+//   args_sizes_get, args_get → el argv fijo de esta corrida
 //
 // El teclado: el wasm es síncrono y aquí no hay prompt(). El worker
 // avisa al hilo principal ({tipo:"pregunta"}) y se duerme con
@@ -31,8 +38,10 @@ let abiertos = null;    // Map fd → {nombre, pos}
 let siguienteFd = 4;    // 0-2 son consola, 3 el directorio preabierto
 let teclado = null;     // bytes de la línea en curso aún sin entregar
 let tecladoPos = 0;
+let argv = [];          // argv de esta corrida, fijado antes de _start
 
 const decodificador = new TextDecoder();
+const codificador = new TextEncoder();
 
 function vista() {
   // siempre fresca: la memoria puede crecer y dejar los buffers viejos
@@ -160,19 +169,70 @@ const wasi = {
   proc_exit(codigo) {
     throw { salidaAnlaco: codigo };
   },
+
+  // anac.wasm es un programa CLI: lee argv (["anac", "ejecutar", archivo]),
+  // layout estándar de wasi_snapshot_preview1.
+  args_sizes_get(argcPtr, bufSizePtr) {
+    const v = vista();
+    let tamBuf = 0;
+    for (const arg of argv) tamBuf += codificador.encode(arg).length + 1; // + NUL
+    v.setUint32(argcPtr, argv.length, true);
+    v.setUint32(bufSizePtr, tamBuf, true);
+    return EXITO;
+  },
+
+  args_get(argvPtr, argvBufPtr) {
+    const v = vista();
+    let pos = argvBufPtr;
+    for (let i = 0; i < argv.length; i++) {
+      const bytes = codificador.encode(argv[i]);
+      v.setUint32(argvPtr + i * 4, pos, true);
+      new Uint8Array(memoria.buffer, pos, bytes.length).set(bytes);
+      pos += bytes.length;
+      new Uint8Array(memoria.buffer, pos, 1)[0] = 0; // NUL
+      pos += 1;
+    }
+    return EXITO;
+  },
 };
 
+let anacModuloPromesa = null;
+
+function anacModulo() {
+  if (anacModuloPromesa === null) {
+    anacModuloPromesa = fetch("anac.wasm")
+      .then((r) => r.arrayBuffer())
+      .then((bytes) => WebAssembly.compile(bytes));
+  }
+  return anacModuloPromesa;
+}
+
+// El runtime de Ana (los mensajes de error, bignum, mostrar…): un texto
+// fijo que anac.ana lee del directorio de trabajo, como en la terminal.
+let preludioPromesa = null;
+
+function preludio() {
+  if (preludioPromesa === null) {
+    preludioPromesa = fetch("preludio_es.wat").then((r) => r.arrayBuffer());
+  }
+  return preludioPromesa;
+}
+
 self.onmessage = async (evento) => {
-  const { wasm, archivos: archivosDeAntes, sab } = evento.data;
+  const { fuente, archivos: archivosDeAntes, sab } = evento.data;
   archivos = archivosDeAntes ?? new Map();
+  archivos.set("programa.ana", codificador.encode(fuente));
+  archivos.set("preludio_es.wat", new Uint8Array(await preludio()));
   abiertos = new Map();
+  argv = ["anac", "ejecutar", "programa.ana"];
   if (sab) {
     ctrl = new Int32Array(sab, 0, 2);
     datosSab = new Uint8Array(sab, 8);
   }
   let codigo = 0;
   try {
-    const { instance } = await WebAssembly.instantiate(wasm, {
+    const modulo = await anacModulo();
+    const instance = await WebAssembly.instantiate(modulo, {
       wasi_snapshot_preview1: wasi,
     });
     memoria = instance.exports.memory;

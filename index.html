@@ -117,52 +117,53 @@
 <body>
 <header>
   <h1><b>Ana</b> — el IDE</h1>
-  <p class="sub">Escribe a la izquierda y compila con ▶, o prototipa frase a frase en la consola. Todo en tu navegador.</p>
+  <p class="sub">Escribe a la izquierda y ejecuta con ▶. Todo en tu navegador, con el propio intérprete de Ana (anac.wasm) — sin Python.</p>
 </header>
 
 <div class="barra">
   <button id="ejecutar" disabled>▶ Ejecutar</button>
   <button id="detener" disabled>■ Detener</button>
-  <button id="traducir" disabled>Traducir es↔en</button>
-  <button id="formatear" disabled>Formatear</button>
+  <button id="traducir" disabled title="Aún no portado a Ana — llega en una fase futura">Traducir es↔en</button>
+  <button id="formatear" disabled title="Aún no portado a Ana — llega en una fase futura">Formatear</button>
   <select id="ejemplos" disabled>
     <option value="">Cargar un ejemplo…</option>
   </select>
-  <span id="estado">Cargando Ana (la primera vez baja ~10 MB)…</span>
+  <span id="estado">Cargando Ana…</span>
 </div>
 
 <main>
   <textarea id="editor" spellcheck="false" aria-label="Editor de código Anlaco">« aquí »</textarea>
   <pre id="salida" aria-label="Salida del programa">La salida de tu programa aparecerá aquí.</pre>
 
-  <div id="consola" aria-label="Consola de Ana">
-    <pre id="consola-historial">La consola: escribe una frase y se hace al momento. Las variables se recuerdan.
+  <div id="consola" aria-label="Consola de Ana (próximamente)">
+    <pre id="consola-historial">La consola interactiva aún no está portada a Ana — llega en una fase futura.
+Por ahora, escribe el programa completo a la izquierda y pulsa ▶ Ejecutar.
 </pre>
     <div id="consola-linea">
       <span id="consola-prompt">&gt;&gt;&gt;</span>
       <input id="consola-entrada" autocomplete="off" spellcheck="false"
-             aria-label="Línea de la consola" disabled>
+             aria-label="Línea de la consola (próximamente)" disabled>
       <button id="cortar" hidden>✂ Cortar</button>
     </div>
   </div>
 
-  <div id="variables" aria-label="Variables de la sesión">
+  <div id="variables" aria-label="Variables de la sesión (próximamente)">
     <div class="panel-cabecera">
       <span>Variables de la consola</span>
       <button id="limpiar" disabled>Limpiar sesión</button>
     </div>
     <div id="variables-cuerpo">
-      <p id="variables-vacio">Aún no hay: escribe en la consola y las verás nacer aquí.</p>
+      <p id="variables-vacio">Aún no portado a Ana — llega junto con la consola interactiva.</p>
       <table hidden><tbody id="variables-filas"></tbody></table>
     </div>
   </div>
 </main>
 
 <footer>
-  Consejos: Ctrl+Intro compila y ejecuta el editor · en la consola las flechas
-  ↑↓ recuperan frases · <code>la respuesta a</code> pregunta con un diálogo ·
-  los archivos guardados viven en memoria hasta recargar · si algo no acaba
-  nunca: ■ Detener (editor) o ✂ Cortar (consola).
+  Consejos: Ctrl+Intro ejecuta el editor · <code>la respuesta a</code> pregunta con
+  un diálogo · los archivos guardados viven en memoria hasta recargar · si algo
+  no acaba nunca: ■ Detener. La consola interactiva, Traducir y Formatear llegan
+  en una fase futura (portados a Ana).
 </footer>
 
 <script>
@@ -189,7 +190,7 @@ function estado(texto) { $("estado").textContent = texto; }
 
 // ---- el aislamiento: SharedArrayBuffer para esperar al teclado ----
 //
-// Los workers se duermen con Atomics.wait mientras el usuario contesta.
+// El worker se duerme con Atomics.wait mientras el usuario contesta.
 // Eso pide una página "cross-origin isolated"; el service worker coi.js
 // añade las cabeceras que faltan y recargamos una vez.
 async function aislar() {
@@ -225,22 +226,7 @@ function contestarEnSab(sab, pregunta) {
   return respuesta;
 }
 
-// ---- el worker de Ana (Pyodide): compila y lleva la consola ----
-let compilador = null;
-let peticiones = new Map(); // id → resolve
-let siguienteId = 1;
-let sabConsola = null;   // teclado de la consola
-let corteConsola = null; // buffer de interrupción de Pyodide
-
-function pedirAlCompilador(accion, fuente) {
-  return new Promise((resolve) => {
-    const id = siguienteId++;
-    peticiones.set(id, resolve);
-    compilador.postMessage({ id, accion, fuente });
-  });
-}
-
-// ---- el worker ejecutor (uno por corrida del editor) ----
+// ---- el worker de Ana (anac.wasm, uno por corrida) ----
 let ejecutor = null;
 let sabEjecutor = null;
 let archivos = new Map();    // los archivos viven aquí entre corridas
@@ -263,15 +249,8 @@ async function ejecutar() {
   $("ejecutar").disabled = true;
   salidaTexto = "";
   $("salida").textContent = "";
-  estado("Compilando…");
-  const resultado = await pedirAlCompilador("compilar", $("editor").value);
-  if (resultado.tipo === "error") {
-    escribirSalida(resultado.texto + "\n");
-    terminarCorrida("Ana está lista.");
-    return;
-  }
   estado("Corriendo…");
-  ejecutor = new Worker("ejecutor.js");
+  ejecutor = new Worker("anac.js");
   ejecutor.onmessage = (evento) => {
     const mensaje = evento.data;
     if (mensaje.tipo === "salida") {
@@ -287,79 +266,8 @@ async function ejecutar() {
       terminarCorrida("Ana está lista.");
     }
   };
-  ejecutor.postMessage({ wasm: resultado.wasm, archivos, sab: sabEjecutor });
+  ejecutor.postMessage({ fuente: $("editor").value, archivos, sab: sabEjecutor });
   $("detener").disabled = false;
-}
-
-async function alEditor(accion) {
-  const resultado = await pedirAlCompilador(accion, $("editor").value);
-  if (resultado.tipo === "error") {
-    $("salida").textContent = resultado.texto;
-  } else {
-    $("editor").value = resultado.texto;
-    $("salida").textContent = "Hecho. Mira el editor.";
-  }
-}
-
-// ---- la consola: la sesión viva del intérprete ----
-let frasesDichas = [];
-let frasePos = 0;
-
-function escribirConsola(texto) {
-  $("consola-historial").textContent += texto;
-  $("consola-historial").scrollTop = $("consola-historial").scrollHeight;
-}
-
-function pintarVariables(filas) {
-  const cuerpo = $("variables-filas");
-  cuerpo.replaceChildren();
-  for (const [nombre, valor] of filas) {
-    const fila = document.createElement("tr");
-    const celdaNombre = document.createElement("td");
-    const celdaValor = document.createElement("td");
-    celdaNombre.textContent = nombre;
-    celdaValor.textContent = valor;
-    fila.append(celdaNombre, celdaValor);
-    cuerpo.appendChild(fila);
-  }
-  $("variables-vacio").hidden = filas.length > 0;
-  cuerpo.closest("table").hidden = filas.length === 0;
-}
-
-async function evaluarConsola() {
-  const entrada = $("consola-entrada");
-  const linea = entrada.value;
-  entrada.value = "";
-  if (linea.trim() !== "") {
-    frasesDichas.push(linea);
-  }
-  frasePos = frasesDichas.length;
-  escribirConsola($("consola-prompt").textContent + " " + linea + "\n");
-  entrada.disabled = true;
-  if (corteConsola) $("cortar").hidden = false;
-  const ocupados = ["ejecutar", "traducir", "formatear"]; // comparten worker
-  for (const boton of ocupados) $(boton).disabled = true;
-  const r = await pedirAlCompilador("consola", linea);
-  if (corteConsola) new Uint8Array(corteConsola)[0] = 0;
-  $("cortar").hidden = true;
-  if (r.tipo === "error") {
-    escribirConsola(r.texto + "\n");
-  } else {
-    escribirConsola(r.salida);
-    $("consola-prompt").textContent = r.abierta ? "..." : ">>>";
-    pintarVariables(r.variables);
-  }
-  for (const boton of ocupados) $(boton).disabled = false;
-  entrada.disabled = false;
-  entrada.focus();
-}
-
-async function limpiarSesion() {
-  await pedirAlCompilador("reiniciar", "");
-  $("consola-historial").textContent = "La consola está limpia: sesión nueva.\n";
-  $("consola-prompt").textContent = ">>>";
-  pintarVariables([]);
-  $("consola-entrada").focus();
 }
 
 async function arrancar() {
@@ -368,71 +276,17 @@ async function arrancar() {
   if (aislado === null) return; // la página se está recargando
   if (aislado) {
     sabEjecutor = new SharedArrayBuffer(8 + 4096);
-    sabConsola = new SharedArrayBuffer(8 + 4096);
-    corteConsola = new SharedArrayBuffer(1);
   } else {
     console.warn("Sin aislamiento: 'la respuesta a' no podrá preguntar.");
   }
-  compilador = new Worker("compilador.js");
-  compilador.onmessage = (evento) => {
-    const mensaje = evento.data;
-    if (mensaje.tipo === "estado") {
-      estado(mensaje.texto);
-    } else if (mensaje.tipo === "listo") {
-      compilador.postMessage({ accion: "conectar", sab: sabConsola, corte: corteConsola });
-      for (const control of ["ejecutar", "traducir", "formatear", "ejemplos",
-                             "consola-entrada", "limpiar"]) {
-        $(control).disabled = false;
-      }
-      estado("Ana está lista.");
-    } else if (mensaje.tipo === "error_arranque") {
-      estado(`No pude arrancar: ${mensaje.texto}`);
-    } else if (mensaje.tipo === "pregunta") {
-      contestarEnSab(sabConsola, mensaje.pregunta); // el eco lo pone la sesión
-    } else {
-      const resolve = peticiones.get(mensaje.id);
-      peticiones.delete(mensaje.id);
-      if (resolve) resolve(mensaje);
-    }
-  };
+  for (const control of ["ejecutar", "ejemplos"]) $(control).disabled = false;
+  estado("Ana está lista.");
 }
 
 $("ejecutar").addEventListener("click", ejecutar);
 $("detener").addEventListener("click", () => {
   escribirSalida("\n■ Programa detenido.\n");
   terminarCorrida("Ana está lista.");
-});
-$("traducir").addEventListener("click", () => alEditor("traducir"));
-$("formatear").addEventListener("click", () => alEditor("formatear"));
-$("limpiar").addEventListener("click", limpiarSesion);
-$("cortar").addEventListener("click", () => {
-  if (corteConsola) new Uint8Array(corteConsola)[0] = 2; // señal de corte a Pyodide
-});
-
-$("consola-entrada").addEventListener("keydown", (evento) => {
-  if (evento.key === "Enter" && !$("consola-entrada").disabled) {
-    evaluarConsola();
-  } else if (evento.key === "ArrowUp") {
-    if (frasePos > 0) {
-      frasePos -= 1;
-      $("consola-entrada").value = frasesDichas[frasePos];
-      evento.preventDefault();
-    }
-  } else if (evento.key === "ArrowDown") {
-    if (frasePos < frasesDichas.length - 1) {
-      frasePos += 1;
-      $("consola-entrada").value = frasesDichas[frasePos];
-    } else {
-      frasePos = frasesDichas.length;
-      $("consola-entrada").value = "";
-    }
-    evento.preventDefault();
-  }
-});
-$("consola").addEventListener("click", (evento) => {
-  if (window.getSelection().isCollapsed && evento.target.tagName !== "BUTTON") {
-    $("consola-entrada").focus();
-  }
 });
 
 // En el repo de desarrollo los ejemplos viven en ../espec/ejemplos/;
