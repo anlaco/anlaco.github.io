@@ -1,7 +1,0 @@
-la edad es la respuesta a "¿Cuántos años tienes?"
-si edad es mayor que 17:
-    escribe "Puedes votar"
-si no:
-    faltan es (18 - la edad)
-    escribe "Te faltan {faltan} años para votar"
-fin

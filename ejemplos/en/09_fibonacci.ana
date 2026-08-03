@@ -1,9 +1,0 @@
-# idioma: en
-define fibonacci with n:
-    if n is less than 2:
-        return n
-    end
-    return (fibonacci with (n - 1) + fibonacci with (n - 2))
-end
-
-write fibonacci with 10

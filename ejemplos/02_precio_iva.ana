@@ -1,7 +1,0 @@
-# Calcula el precio con IVA
-el precio es 100
-el iva es (el precio * 0.21)
-el total es (el precio + el iva)
-escribe "Precio: {precio} euros"
-escribe "IVA: {iva} euros"
-escribe "Total: {total} euros"

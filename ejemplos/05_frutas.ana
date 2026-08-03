@@ -1,5 +1,0 @@
-las frutas son ["manzana", "pera", "uva"]
-para cada fruta en frutas:
-    escribe "Me gusta la {fruta}"
-fin
-escribe "La lista tiene {cantidad de frutas} frutas"

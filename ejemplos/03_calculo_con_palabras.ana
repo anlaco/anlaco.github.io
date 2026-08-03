@@ -1,6 +1,0 @@
-# El mismo cálculo, escrito con palabras.
-# El formateador lo convertirá a símbolos (forma canónica).
-el precio es 100
-el iva es (el precio por 0.21)
-el total es (el precio más el iva)
-escribe "Total: {total} euros"

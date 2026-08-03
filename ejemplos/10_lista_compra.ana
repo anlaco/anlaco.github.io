@@ -1,6 +1,0 @@
-la compra es ["pan", "leche"]
-añade "huevos" a compra
-escribe "Lo primero es comprar {primero de compra}"
-escribe "Lo último es comprar {último de compra}"
-escribe "El elemento 2 es {elemento 2 de compra}"
-escribe "En total hay {cantidad de compra} cosas"

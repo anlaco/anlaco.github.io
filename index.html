@@ -3,318 +3,371 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Ana — el IDE</title>
-<style>
-  :root {
-    --fondo: #fdfcf8; --tinta: #2b2b2b; --borde: #d8d4c8;
-    --acento: #2e6e4e; --acento-claro: #eaf3ee; --salida-fondo: #23272e;
-    --salida-tinta: #e8e6df;
-  }
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --fondo: #1e2126; --tinta: #e8e6df; --borde: #3a3f47;
-      --acento: #6fbf94; --acento-claro: #26332c;
-    }
-  }
-  * { box-sizing: border-box; }
-  body {
-    margin: 0; background: var(--fondo); color: var(--tinta);
-    font: 16px/1.5 Georgia, "Times New Roman", serif;
-    display: flex; flex-direction: column; min-height: 100vh;
-  }
-  header { padding: 1rem 1.5rem 0.5rem; }
-  h1 { margin: 0; font-size: 1.5rem; font-weight: normal; }
-  h1 b { color: var(--acento); }
-  .sub { margin: 0.15rem 0 0; opacity: 0.75; font-size: 0.95rem; }
-  .barra {
-    display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center;
-    padding: 0.75rem 1.5rem;
-  }
-  button, select {
-    font: inherit; font-size: 0.95rem; padding: 0.4rem 0.9rem;
-    border: 1px solid var(--borde); border-radius: 6px;
-    background: var(--fondo); color: var(--tinta); cursor: pointer;
-  }
-  button:hover:enabled { background: var(--acento-claro); }
-  button:disabled { opacity: 0.45; cursor: not-allowed; }
-  #ejecutar { background: var(--acento); color: #fff; border-color: var(--acento); }
-  #ejecutar:hover:enabled { background: #245a40; }
-  #detener { border-color: #b3552e; color: #b3552e; }
-  #estado { font-size: 0.9rem; opacity: 0.75; margin-left: auto; }
-  main {
-    flex: 1; display: grid; gap: 1rem;
-    grid-template-columns: 1fr 1fr;
-    grid-template-rows: minmax(260px, 1fr) 240px;
-    grid-template-areas: "editor salida" "consola variables";
-    padding: 0 1.5rem 1rem; min-height: 0;
-  }
-  @media (max-width: 800px) {
-    main {
-      grid-template-columns: 1fr;
-      grid-template-rows: minmax(260px, auto) 200px 240px 200px;
-      grid-template-areas: "editor" "salida" "consola" "variables";
-    }
-  }
-  textarea, #salida, #consola, #variables {
-    width: 100%; height: 100%; margin: 0;
-    border: 1px solid var(--borde); border-radius: 8px;
-  }
-  textarea {
-    grid-area: editor; min-height: 260px; padding: 0.9rem;
-    font: 15px/1.5 "DejaVu Sans Mono", Consolas, monospace;
-    background: var(--fondo); color: var(--tinta);
-    resize: vertical; outline: none; white-space: pre; overflow-x: auto;
-  }
-  textarea:focus { border-color: var(--acento); }
-  #salida {
-    grid-area: salida; padding: 0.9rem; overflow: auto;
-    font: 15px/1.5 "DejaVu Sans Mono", Consolas, monospace;
-    background: var(--salida-fondo); color: var(--salida-tinta);
-    white-space: pre-wrap;
-  }
-  #consola {
-    grid-area: consola; display: flex; flex-direction: column;
-    background: var(--salida-fondo); color: var(--salida-tinta);
-    font: 15px/1.5 "DejaVu Sans Mono", Consolas, monospace;
-  }
-  #consola-historial {
-    flex: 1; margin: 0; padding: 0.7rem 0.9rem 0.2rem; overflow: auto;
-    white-space: pre-wrap; font: inherit;
-  }
-  #consola-linea {
-    display: flex; align-items: center; gap: 0.5rem; padding: 0.2rem 0.9rem 0.7rem;
-  }
-  #consola-prompt { color: #8fd4ae; }
-  #consola-entrada {
-    flex: 1; border: none; outline: none; background: transparent;
-    color: var(--salida-tinta); font: inherit; padding: 0;
-  }
-  #cortar {
-    font-size: 0.85rem; padding: 0.1rem 0.6rem;
-    background: transparent; color: #e8a68a; border-color: #b3552e;
-  }
-  #variables { grid-area: variables; display: flex; flex-direction: column; overflow: hidden; }
-  .panel-cabecera {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 0.5rem 0.9rem; border-bottom: 1px solid var(--borde);
-    font-size: 0.9rem; opacity: 0.85;
-  }
-  #limpiar { font-size: 0.85rem; padding: 0.15rem 0.6rem; }
-  #variables-cuerpo { flex: 1; overflow: auto; padding: 0.4rem 0.9rem; }
-  #variables table { width: 100%; border-collapse: collapse; font-size: 0.95rem; }
-  #variables td {
-    padding: 0.25rem 0.5rem 0.25rem 0; border-bottom: 1px solid var(--borde);
-    vertical-align: top;
-  }
-  #variables td:first-child {
-    font-family: "DejaVu Sans Mono", Consolas, monospace; color: var(--acento);
-    white-space: nowrap;
-  }
-  #variables-vacio { opacity: 0.6; font-size: 0.95rem; margin: 0.4rem 0; }
-  footer { padding: 0 1.5rem 1rem; font-size: 0.85rem; opacity: 0.65; }
-</style>
+<title>Anvil — Secuenciador de test open-source</title>
+<meta name="description" content="Anvil: el secuenciador de test de producción open-source. Secuencia como datos en YAML, pasos en cualquier lenguaje tras un contrato gRPC, motor en WASM portable y aislado. La alternativa a TestStand sin lock-in.">
+<link rel="stylesheet" href="style.css">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
 </head>
 <body>
-<header>
-  <h1><b>Ana</b> — el IDE</h1>
-  <p class="sub">Escribe a la izquierda y ejecuta con ▶. Todo en tu navegador, con el propio intérprete de Ana (anac.wasm) — sin Python.</p>
+
+<header class="nav">
+  <div class="nav-inner">
+    <a href="#" class="logo">
+      <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M4 6 L4 24 L24 24 L24 6 L4 6 Z" stroke="currentColor" stroke-width="2" fill="none"/>
+        <path d="M9 12 L19 12 M9 16 L19 16 M9 20 L15 20" stroke="currentColor" stroke-width="2"/>
+        <path d="M14 2 L14 6" stroke="currentColor" stroke-width="2"/>
+        <circle cx="14" cy="2" r="2" fill="currentColor"/>
+      </svg>
+      <span>Anvil</span>
+    </a>
+    <nav>
+      <a href="#que-es">Qué es</a>
+      <a href="#features">Características</a>
+      <a href="#arquitectura">Arquitectura</a>
+      <a href="#inicio">Inicio rápido</a>
+      <a href="#roadmap">Roadmap</a>
+      <a href="https://github.com/anlaco/anvil" class="gh-link">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.55 0-.27-.01-1.17-.02-2.12-3.2.7-3.88-1.37-3.88-1.37-.52-1.33-1.28-1.69-1.28-1.69-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.55-.29-5.24-1.28-5.24-5.69 0-1.26.45-2.29 1.19-3.1-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.18 1.18a11.05 11.05 0 0 1 5.8 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.84 1.19 3.1 0 4.42-2.69 5.39-5.25 5.68.41.36.78 1.07.78 2.16 0 1.56-.01 2.82-.01 3.2 0 .31.21.67.8.55C20.21 21.39 23.5 17.08 23.5 12 23.5 5.65 18.35.5 12 .5Z"/></svg>
+      </a>
+    </nav>
+  </div>
 </header>
 
-<div class="barra">
-  <button id="ejecutar" disabled>▶ Ejecutar</button>
-  <button id="detener" disabled>■ Detener</button>
-  <button id="traducir" disabled title="Aún no portado a Ana — llega en una fase futura">Traducir es↔en</button>
-  <button id="formatear" disabled title="Aún no portado a Ana — llega en una fase futura">Formatear</button>
-  <select id="ejemplos" disabled>
-    <option value="">Cargar un ejemplo…</option>
-  </select>
-  <span id="estado">Cargando Ana…</span>
-</div>
-
-<main>
-  <textarea id="editor" spellcheck="false" aria-label="Editor de código Anlaco">« aquí »</textarea>
-  <pre id="salida" aria-label="Salida del programa">La salida de tu programa aparecerá aquí.</pre>
-
-  <div id="consola" aria-label="Consola de Ana (próximamente)">
-    <pre id="consola-historial">La consola interactiva aún no está portada a Ana — llega en una fase futura.
-Por ahora, escribe el programa completo a la izquierda y pulsa ▶ Ejecutar.
-</pre>
-    <div id="consola-linea">
-      <span id="consola-prompt">&gt;&gt;&gt;</span>
-      <input id="consola-entrada" autocomplete="off" spellcheck="false"
-             aria-label="Línea de la consola (próximamente)" disabled>
-      <button id="cortar" hidden>✂ Cortar</button>
+<section class="hero">
+  <div class="hero-inner">
+    <div class="hero-tag">Open-source · Rust + WASM · AGPL-3.0</div>
+    <h1>El secuenciador de test<br><span>de producción</span></h1>
+    <p class="lead">
+      Secuencia como datos en YAML. Pasos en cualquier lenguaje tras un
+      contrato gRPC. Motor en WASM portable y aislado. Resultados como dato
+      abierto. La alternativa a TestStand sin el lock-in de vendor ni el
+      editor cerrado.
+    </p>
+    <div class="hero-cta">
+      <a href="#inicio" class="btn btn-primary">Inicio rápido</a>
+      <a href="https://github.com/anlaco/anvil" class="btn btn-ghost">Ver en GitHub →</a>
+    </div>
+    <div class="hero-code">
+<pre><span class="cmt"># secuencia.yaml — el "programa" de test es datos</span>
+<span class="key">nombre</span>: test_fuentes
+<span class="key">main</span>:
+  - <span class="key">nombre</span>: conectar_equipo
+    <span class="key">reintentos</span>: <span class="num">3</span>          <span class="cmt"># fallo transitorio → reintenta</span>
+  - <span class="key">nombre</span>: medir_voltaje
+    <span class="key">limite</span>: { <span class="key">tipo</span>: rango, <span class="key">min</span>: <span class="num">4.5</span>, <span class="key">max</span>: <span class="num">5.5</span> }
+  - <span class="key">nombre</span>: desconectar_equipo</pre>
     </div>
   </div>
+</section>
 
-  <div id="variables" aria-label="Variables de la sesión (próximamente)">
-    <div class="panel-cabecera">
-      <span>Variables de la consola</span>
-      <button id="limpiar" disabled>Limpiar sesión</button>
-    </div>
-    <div id="variables-cuerpo">
-      <p id="variables-vacio">Aún no portado a Ana — llega junto con la consola interactiva.</p>
-      <table hidden><tbody id="variables-filas"></tbody></table>
+<section id="que-es" class="section">
+  <div class="section-inner">
+    <h2>Qué es Anvil</h2>
+    <p>
+      Anvil es un <strong>secuenciador de test</strong>: corre secuencias de
+      pasos contra equipo real, reintenta los que fallan y reporta el
+      resultado. Como NI TestStand, pero sin su coste (~$4,310/seat/año), sin
+      LabVIEW atado, sin deployment monolítico, sin reportes rígidos.
+    </p>
+    <p>
+      La idea central, copiada de TestStand, es que <strong>el secuenciador es
+      el host que orquesta, no un runner que ejecuta tu código</strong>. La
+      secuencia es <strong>datos</strong> (YAML diffable, versionado en Git),
+      no un binario opaco. Cada paso se invoca <strong>por gRPC por su
+      nombre</strong> — nunca con una llamada directa — lo que aísla los
+      pasos entre sí y deja la puerta abierta a escribirlos en cualquier
+      lenguaje.
+    </p>
+    <div class="three-col">
+      <div class="card">
+        <h3>Secuencia = datos</h3>
+        <p>YAML diffable, versionado en Git. El motor lo recorre sin saber
+          qué hace cada paso. No un <code>.seq</code> binario.</p>
+      </div>
+      <div class="card">
+        <h3>Pasos en cualquier lenguaje</h3>
+        <p>El adapter <em>es</em> gRPC. No hay código de pegamento en el
+          motor ni runtime de vendor atado. Rust, Python, C, Zig, lo que sea.</p>
+      </div>
+      <div class="card">
+        <h3>Motor en WASM</h3>
+        <p>Portable y aislado: <code>./anvil secuencia.yaml</code> sin
+          instalador. Sandbox real, JIT a nativo, determinismo para
+          reintentos reproducibles.</p>
+      </div>
     </div>
   </div>
-</main>
+</section>
 
-<footer>
-  Consejos: Ctrl+Intro ejecuta el editor · <code>la respuesta a</code> pregunta con
-  un diálogo · los archivos guardados viven en memoria hasta recargar · si algo
-  no acaba nunca: ■ Detener. La consola interactiva, Traducir y Formatear llegan
-  en una fase futura (portados a Ana).
+<section id="features" class="section alt">
+  <div class="section-inner">
+    <h2>Características</h2>
+    <div class="features-grid">
+      <div class="feat">
+        <h3>Semántica Setup → Main → Cleanup</h3>
+        <p>El Main corta en el primer fallo; el Cleanup corre siempre — un
+          equipo que se quedó encendido es peor que una secuencia que
+          falló.</p>
+      </div>
+      <div class="feat">
+        <h3>Reintentos por paso</h3>
+        <p>Cada paso declara cuántos intentos admite. El número de intento
+          llega al paso, que puede simular fallos transitorios.</p>
+      </div>
+      <div class="feat">
+        <h3>Límites como datos first-class</h3>
+        <p>El límite vive en el YAML, no en el código del paso. El paso
+          mide; el motor evalúa el umbral declarado (ADR-0008). Cambiar
+          umbrales por lote no toca la secuencia.</p>
+      </div>
+      <div class="feat">
+        <h3>Variables y expresiones</h3>
+        <p>Scopes Locals / Parameters / FileGlobals. Expression engine
+          estilo Julia (cortocircuito, sin truthiness). Precondición por
+          paso, asignación de resultados, pasos <code>statement</code>
+          locales sin gRPC.</p>
+      </div>
+      <div class="feat">
+        <h3>Subsecuencias (sequence call)</h3>
+        <p>Invoca otra secuencia como un paso, con Parameters
+          entrada/salida <strong>by-reference</strong> como TestStand.
+          Inline por nombre o en archivo aparte por path. Detección de
+          ciclos al cargar.</p>
+      </div>
+      <div class="feat">
+        <h3>ResultSink desacoplado</h3>
+        <p>Consola, JSON y CSV de serie (estilo OpenTAP ResultListener).
+          SQLite/STDF post-MVP. Reintento de IO ante fallos transitorios.</p>
+      </div>
+      <div class="feat">
+        <h3>Routing multi-endpoint</h3>
+        <p><code>ejecutores:</code> en el YAML + <code>--ejecutor</code>
+          por CLI. Un paso lo atiende el ejecutor embebido (de serie), un
+          <code>.wasm</code> cargado por path, o un servidor gRPC en otra
+          máquina — el motor no distingue.</p>
+      </div>
+      <div class="feat">
+        <h3>Cargador de .wasm por path</h3>
+        <p>El modelo <code>.vi</code> de TestStand en WASM: compila el
+          módulo, guárdalo en un archivo, referéncialo por path. El host lo
+          instancia en un Store propio (sandbox loopback-only, puerto
+          efímero). Sin recompilar el secuenciador.</p>
+      </div>
+      <div class="feat">
+        <h3>Un binario</h3>
+        <p>Descarga <code>anvil</code> y corre. wasmtime va embebido; los
+          dos guests WASM (motor + ejecutor) van dentro. Sin instalar
+          runtimes. Sin dependencias.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="arquitectura" class="section">
+  <div class="section-inner">
+    <h2>Arquitectura</h2>
+    <p>
+      Anvil hospeda <strong>wasmtime como librería</strong> y orquesta dos
+      guests WASM — <strong>motor</strong> (recorre la secuencia) y
+      <strong>ejecutor</strong> (despacha pasos por nombre) — en sandboxes
+      separados, hablando gRPC por loopback TCP restringido. El motor no
+      sabe qué hay detrás de cada endpoint: ejecutor embebido, <code>.wasm</code>
+      cargado por path, o servidor gRPC en otra máquina.
+    </p>
+    <div class="arch-diagram">
+<pre>                  ┌───────────────────────────────────────┐
+                  │  anvil-host (bin nativo, un binario)    │
+   Ingeniero      │  ┌──────────────┐  ┌───────────────┐  │   ResultSinks
+   de test ──────▶│  │  motor.wasm   │  │ ejecutor.wasm │  │──▶ (consola/JSON/
+   (authora YAML) │  │  (recorre la  │  │ (despacha por │  │    CSV/SQLite)
+                  │  │   secuencia)  │  │    nombre)    │  │
+   Operador ─────▶│  └──────┬───────┘  └───────┬───────┘  │
+   (corre CLI)    │         │ gRPC por loopback  │          │
+                  │         └───────────────────┘          │
+                  └───────────────────────────────────────┘
+                              │ gRPC (mismo contrato)
+                              ▼
+                  ┌───────────────────────────────────────┐
+                  │  Ejecutores de lenguaje / .wasm        │
+                  │  (Python · Rust · Zig · C · editor)     │
+                  │  en loopback o en otra máquina (Pi)     │
+                  └──────────────────┬────────────────────┘
+                                     │ SCPI/VISA (post-MVP)
+                                     ▼
+                              ┌────────────┐
+                              │ Instrumentos│
+                              └────────────┘</pre>
+    </div>
+    <p class="arch-note">
+      La frontera gRPC motor↔ejecutor es <strong>real</strong>
+      (aislamiento motor-side). El contrato es <code>paso.proto</code>:
+      <code>service EjecutorPasos { rpc Invoca(PeticionPaso) returns
+      (ResultadoPasoProto) }</code> — un método, unaria. No se rompe sin un
+      ADR (RNF-05).
+    </p>
+  </div>
+</section>
+
+<section id="inicio" class="section alt">
+  <div class="section-inner">
+    <h2>Inicio rápido</h2>
+    <p class="intro">
+      Anvil es <strong>un binario</strong>: lo descargas y corres. Por
+      dentro hospeda <code>wasmtime</code> y los dos guests WASM en sandbox,
+      hablando gRPC por loopback. No necesitas instalar nada.
+    </p>
+
+    <h3>1. Compilar (build desde source)</h3>
+    <div class="cmd-block">
+<pre><span class="cmt"># 1. Guests WASM (motor + ejecutor) — workspace del core</span>
+cargo build --target wasm32-wasip2 -p motor -p ejecutor_pasos
+
+<span class="cmt"># 2. Host nativo (workspace aparte; wasmtime se compila aquí)</span>
+cargo build --manifest-path packaging/anvil-host/Cargo.toml
+<span class="cmt"># → packaging/anvil-host/target/debug/anvil</span></pre>
+    </div>
+
+    <h3>2. Correr una secuencia</h3>
+    <div class="cmd-block">
+<pre><span class="cmt"># Reporte textual a stdout; JSON y CSV a fichero</span>
+./packaging/anvil-host/target/debug/anvil ejemplos/subsecuencia.yaml \
+  --json ./out.json --csv ./out.csv</pre>
+    </div>
+    <div class="output-block">
+<pre>=== subsecuencia: paso ===
+  [paso] preparar: sequence call 'init_comun' → paso
+    [paso] preparar_canal: statement ok
+  [paso] test_fuentes: sequence call 'ejemplos/medir_fuentes.yaml' → paso
+    [paso] ajustar_canal: statement ok
+    [paso] medir_voltaje: medido: 4.2 V
+    [paso] desconectar_equipo: equipo desconectado</pre>
+    </div>
+
+    <h3>3. Probar las demos del repo</h3>
+    <div class="cmd-block">
+<pre>./anvil ejemplos/basica.yaml                       <span class="cmt"># lo básico</span>
+./anvil ejemplos/limites.yaml                       <span class="cmt"># límites como datos</span>
+./anvil ejemplos/variables.yaml                    <span class="cmt"># variables y expresiones</span>
+./anvil ejemplos/subsecuencia.yaml                  <span class="cmt"># sequence call + subsecuencias</span>
+./anvil ejemplos/demo_ejecutores.yaml               <span class="cmt"># routing: embebido + Python</span>
+./anvil ejemplos/demo_wasm.yaml                     <span class="cmt"># cargador .wasm por path</span>
+./anvil ejemplos/basica.yaml --limits ejemplos/limites.limits.yaml  <span class="cmt"># sidecar</span></pre>
+    </div>
+
+    <h3>CLI</h3>
+    <div class="cmd-block">
+<pre>anvil &lt;secuencia.yaml&gt; [--json &lt;r&gt;] [--csv &lt;r&gt;] [--limits &lt;r&gt;] [--ejecutor nombre=host:puerto]</pre>
+    </div>
+    <ul class="cli-list">
+      <li><strong>Consola</strong> siempre (reporte textual, stdout limpio).</li>
+      <li><strong><code>--json</code></strong> / <strong><code>--csv</code></strong>: vuelcan a fichero.</li>
+      <li><strong><code>--limits</code></strong>: sidecar de límites por nombre de paso (RF-30).</li>
+      <li><strong><code>--ejecutor nombre=host:puerto</code></strong>: re-apunta un ejecutor sin tocar el YAML (R&D vs. fábrica).</li>
+      <li><strong><code>--solo-loopback</code></strong>: rechaza cualquier <code>grpc</code> no-loopback (CI/paranoia).</li>
+    </ul>
+  </div>
+</section>
+
+<section id="roadmap" class="section">
+  <div class="section-inner">
+    <h2>Roadmap</h2>
+    <p class="intro">
+      Hitos de lo más cercano a lo más lejano. Lo <strong>ya hecho</strong>
+      se marca; el resto es propuesta de orden, no compromiso de fecha.
+    </p>
+    <div class="roadmap-grid">
+      <div class="milestone done">
+        <h3>M0 — Prototipo <span class="badge">✓</span></h3>
+        <p>Motor + ejecutor gRPC sobre wasi-grpc. Semántica Setup→Main→Cleanup. Reintentos. Reporte textual.</p>
+      </div>
+      <div class="milestone done">
+        <h3>M1 — Secuencia como datos <span class="badge">✓</span></h3>
+        <p>Schema YAML de DefinicionSecuencia + cargador. El motor no cambia.</p>
+      </div>
+      <div class="milestone done">
+        <h3>M2 — ResultSink <span class="badge">✓</span></h3>
+        <p>Consola/JSON/CSV desacoplado (estilo OpenTAP). SQLite aplazado.</p>
+      </div>
+      <div class="milestone done">
+        <h3>M3 — Límites como datos <span class="badge">✓</span></h3>
+        <p>Límites high/low/comparación first-class. Property loader sidecar. El motor evalúa.</p>
+      </div>
+      <div class="milestone done">
+        <h3>M4 — Variables y control de flujo <span class="badge">✓</span></h3>
+        <p>Expression engine (Julia), scopes, precondición, disable, pause_on_fail, statement local.</p>
+      </div>
+      <div class="milestone done">
+        <h3>M4b — Sequence call <span class="badge">✓</span></h3>
+        <p>Subsecuencias inline y por path. Parameters by-reference. Detección de ciclos.</p>
+      </div>
+      <div class="milestone done">
+        <h3>M5-ext.1 — Routing multi-endpoint <span class="badge">✓</span></h3>
+        <p><code>ejecutores:</code> en YAML + override <code>--ejecutor</code>. Relajación acotada del loopback.</p>
+      </div>
+      <div class="milestone done">
+        <h3>M5-ext.2 — Cargador .wasm por path <span class="badge">✓</span></h3>
+        <p>Modelo <code>.vi</code> de TestStand en WASM. <code>ANVIL_PORT</code>, Store por path, deduplicación.</p>
+      </div>
+      <div class="milestone">
+        <h3>M5-base — Process model + CLI maduro</h3>
+        <p>Sequential simple + plug-ins. CLI headless. Empaquetado como binario único.</p>
+      </div>
+      <div class="milestone">
+        <h3>Post-MVP</h3>
+        <p>Paralelismo con cancelación jerárquica. Operator UI web. Editor visual. STDF/ATML. PyVISA nativo. StationGlobals. Custom step types.</p>
+      </div>
+    </div>
+    <p class="arch-note">
+      <strong>Fin del MVP</strong> ≈ M5-base. LID (Legacy Isolation Domain)
+      aplazado a post-M5-ext. Ver el
+      <a href="https://github.com/anlaco/anvil/blob/main/docs/roadmap.md">roadmap completo</a>.
+    </p>
+  </div>
+</section>
+
+<section id="licencia" class="section alt">
+  <div class="section-inner">
+    <h2>Licencia</h2>
+    <div class="lic-grid">
+      <div class="lic-card agpl">
+        <h3>anvil — AGPL-3.0</h3>
+        <p>El producto. Se <em>usa</em>, no se linka. La AGPL impide que
+          alguien lo cierre y lo revenda. <strong>No afecta a tus
+          secuencias</strong> — son datos, no obra derivada.</p>
+      </div>
+      <div class="lic-card apache">
+        <h3>Libs — Apache-2.0</h3>
+        <p><code>wasi-grpc</code>, <code>wasi-visa</code>, interfaces WIT.
+          Se linkan en código ajeno. Sin copyleft ahí: tu código te
+          pertenece.</p>
+      </div>
+    </div>
+    <p class="arch-note">
+      Un paso de test se <strong>linka</strong> con las librerías; copyleft
+      ahí contagiaría el código de quien las use. En el secuenciador no
+      ocurre. Ver <a href="https://github.com/anlaco/anvil/blob/main/docs/licencia.md">licencia.md</a>.
+    </p>
+  </div>
+</section>
+
+<footer class="footer">
+  <div class="footer-inner">
+    <div class="footer-left">
+      <span class="footer-logo">
+        <svg width="20" height="20" viewBox="0 0 28 28" fill="none"><path d="M4 6 L4 24 L24 24 L24 6 L4 6 Z" stroke="currentColor" stroke-width="2" fill="none"/><path d="M9 12 L19 12 M9 16 L19 16 M9 20 L15 20" stroke="currentColor" stroke-width="2"/></svg>
+        Anvil
+      </span>
+      <p>Secuenciador de test open-source · Rust + WASM · AGPL-3.0</p>
+    </div>
+    <div class="footer-right">
+      <a href="https://github.com/anlaco/anvil">GitHub</a>
+      <a href="https://github.com/anlaco/anvil/blob/main/docs/README.md">Docs</a>
+      <a href="https://github.com/anlaco/anvil/blob/main/docs/roadmap.md">Roadmap</a>
+      <a href="https://github.com/anlaco/anvil/blob/main/LICENSE">Licencia</a>
+    </div>
+  </div>
 </footer>
 
-<script>
-const PROGRAMA_INICIAL = `# Mi primer programa
-el nombre es la respuesta a "¿Cómo te llamas?"
-escribe "¡Hola, {nombre}! Esto es Ana en tu navegador."
-para cada n del 1 al 3:
-    escribe "{n}..."
-fin
-escribe "¿A que se lee como un libro?"
-`;
-
-const EJEMPLOS = [
-  "01_hola.ana", "02_precio_iva.ana", "03_calculo_con_palabras.ana",
-  "04_votar.ana", "05_frutas.ana", "06_tabla_del_7.ana",
-  "07_cuenta_atras.ana", "08_saludo.ana", "09_fibonacci.ana",
-  "10_lista_compra.ana", "11_adivina.ana", "12_archivo.ana",
-  "13_logica.ana", "14_nota_media.ana", "15_restaurante.ana",
-  "16_formas_funcion.ana",
-  "en/01_hello.ana", "en/04_vote.ana", "en/09_fibonacci.ana",
-];
-
-const $ = (id) => document.getElementById(id);
-function estado(texto) { $("estado").textContent = texto; }
-
-// ---- el aislamiento: SharedArrayBuffer para esperar al teclado ----
-//
-// El worker se duerme con Atomics.wait mientras el usuario contesta.
-// Eso pide una página "cross-origin isolated"; el service worker coi.js
-// añade las cabeceras que faltan y recargamos una vez.
-async function aislar() {
-  if (crossOriginIsolated) return true;
-  if (!("serviceWorker" in navigator)) return false;
-  try {
-    await navigator.serviceWorker.register("coi.js");
-    await navigator.serviceWorker.ready;
-    if (!sessionStorage.getItem("coi-recargado")) {
-      sessionStorage.setItem("coi-recargado", "1");
-      location.reload();
-      return null; // recargando: no seguir
-    }
-  } catch { /* sin service worker seguimos, solo que sin teclado */ }
-  return crossOriginIsolated;
-}
-
-// contesta una pregunta escribiendo en el SharedArrayBuffer del que pregunta
-function contestarEnSab(sab, pregunta) {
-  const respuesta = window.prompt(pregunta);
-  const ctrl = new Int32Array(sab, 0, 2);
-  if (respuesta === null) {
-    Atomics.store(ctrl, 0, 2); // cancelado
-  } else {
-    const bytes = new TextEncoder().encode(respuesta);
-    const sitio = new Uint8Array(sab, 8);
-    const largo = Math.min(bytes.length, sitio.length);
-    sitio.set(bytes.subarray(0, largo));
-    Atomics.store(ctrl, 1, largo);
-    Atomics.store(ctrl, 0, 1); // respuesta lista
-  }
-  Atomics.notify(ctrl, 0);
-  return respuesta;
-}
-
-// ---- el worker de Ana (anac.wasm, uno por corrida) ----
-let ejecutor = null;
-let sabEjecutor = null;
-let archivos = new Map();    // los archivos viven aquí entre corridas
-let salidaTexto = "";
-
-function escribirSalida(texto) {
-  salidaTexto += texto;
-  $("salida").textContent = salidaTexto;
-  $("salida").scrollTop = $("salida").scrollHeight;
-}
-
-function terminarCorrida(texto) {
-  if (ejecutor) { ejecutor.terminate(); ejecutor = null; }
-  $("detener").disabled = true;
-  $("ejecutar").disabled = false;
-  estado(texto);
-}
-
-async function ejecutar() {
-  $("ejecutar").disabled = true;
-  salidaTexto = "";
-  $("salida").textContent = "";
-  estado("Corriendo…");
-  ejecutor = new Worker("anac.js");
-  ejecutor.onmessage = (evento) => {
-    const mensaje = evento.data;
-    if (mensaje.tipo === "salida") {
-      escribirSalida(mensaje.texto);
-    } else if (mensaje.tipo === "pregunta") {
-      // la pregunta es la última línea que escribió el programa
-      const lineas = salidaTexto.replace(/\n+$/, "").split("\n");
-      const respuesta = contestarEnSab(sabEjecutor, lineas[lineas.length - 1] || "...");
-      if (respuesta !== null) escribirSalida(respuesta + "\n"); // el eco
-    } else if (mensaje.tipo === "fin") {
-      archivos = mensaje.archivos; // lo guardado sobrevive a la corrida
-      if (salidaTexto === "") $("salida").textContent = "(el programa no escribió nada)";
-      terminarCorrida("Ana está lista.");
-    }
-  };
-  ejecutor.postMessage({ fuente: $("editor").value, archivos, sab: sabEjecutor });
-  $("detener").disabled = false;
-}
-
-async function arrancar() {
-  $("editor").value = PROGRAMA_INICIAL;
-  const aislado = await aislar();
-  if (aislado === null) return; // la página se está recargando
-  if (aislado) {
-    sabEjecutor = new SharedArrayBuffer(8 + 4096);
-  } else {
-    console.warn("Sin aislamiento: 'la respuesta a' no podrá preguntar.");
-  }
-  for (const control of ["ejecutar", "ejemplos"]) $(control).disabled = false;
-  estado("Ana está lista.");
-}
-
-$("ejecutar").addEventListener("click", ejecutar);
-$("detener").addEventListener("click", () => {
-  escribirSalida("\n■ Programa detenido.\n");
-  terminarCorrida("Ana está lista.");
-});
-
-// En el repo de desarrollo los ejemplos viven en ../espec/ejemplos/;
-// en la web publicada, en ejemplos/ junto a la página.
-$("ejemplos").addEventListener("change", async (evento) => {
-  const nombre = evento.target.value;
-  if (!nombre) return;
-  let respuesta = await fetch(`ejemplos/${nombre}`);
-  if (!respuesta.ok) respuesta = await fetch(`../espec/ejemplos/${nombre}`);
-  $("editor").value = await respuesta.text();
-  $("salida").textContent = "Ejemplo cargado. Pulsa ▶ Ejecutar.";
-});
-
-$("editor").addEventListener("keydown", (evento) => {
-  if (evento.ctrlKey && evento.key === "Enter" && !$("ejecutar").disabled) {
-    $("ejecutar").click();
-  }
-});
-
-for (const nombre of EJEMPLOS) {
-  const opcion = document.createElement("option");
-  opcion.value = nombre;
-  opcion.textContent = nombre.replace(".ana", "").replace("en/", "🇬🇧 ");
-  $("ejemplos").appendChild(opcion);
-}
-
-arrancar().catch((excepcion) => estado(`No pude arrancar: ${excepcion.message}`));
-</script>
 </body>
 </html>

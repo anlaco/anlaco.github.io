@@ -1,6 +1,0 @@
-define saludo con nombre:
-    devuelve "Hola, {nombre}. Bienvenido."
-fin
-
-escribe saludo con "Ana"
-escribe saludo con "Luis"

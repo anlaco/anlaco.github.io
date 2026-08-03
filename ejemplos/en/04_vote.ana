@@ -1,8 +1,0 @@
-# idioma: en
-the age is the answer to "How old are you?"
-if age is greater than 17:
-    write "You can vote"
-otherwise:
-    remaining is (18 - the age)
-    write "You need {remaining} more years to vote"
-end
