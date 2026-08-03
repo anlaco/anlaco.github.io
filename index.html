@@ -149,10 +149,11 @@
       </div>
       <div class="feat">
         <h3>Cargador de .wasm por path</h3>
-        <p>El modelo <code>.vi</code> de TestStand en WASM: compila el
-          módulo, guárdalo en un archivo, referéncialo por path. El host lo
-          instancia en un Store propio (sandbox loopback-only, puerto
-          efímero). Sin recompilar el secuenciador.</p>
+        <p>El modelo <code>.vi</code> de TestStand en WASM: compila tu paso
+          en Rust (una función <code>run</code>, interfaz WIT
+          <code>anvil:paso</code>), referéncialo por path en el YAML y
+          ejecuta. El host lo puentea a gRPC — el motor no distingue. Sin
+          recompilar el secuenciador.</p>
       </div>
       <div class="feat">
         <h3>Un binario</h3>
@@ -215,43 +216,112 @@
     <p class="intro">
       Anvil es <strong>un binario</strong>: lo descargas y corres. Por
       dentro hospeda <code>wasmtime</code> y los dos guests WASM en sandbox,
-      hablando gRPC por loopback. No necesitas instalar nada.
+      hablando gRPC por loopback. No necesitas instalar nada. Para probar
+      <em>antes de compilar</em>: clona el repo y compila (abajo).
     </p>
 
-    <h3>1. Compilar (build desde source)</h3>
+    <h3>1. Escribe tu paso en Rust</h3>
+    <p>
+      Un paso es un <strong>componente WASM</strong> que exporta la función
+      <code>run</code> (interfaz WIT <code>anvil:paso</code>). No sabes de
+      gRPC, no sabes de protobuf, no sabes de Anvil: es una función.
+      Necesitas <code>cargo</code> y una sola herramienta extra:
+    </p>
+    <div class="cmd-block">
+<pre>cargo install cargo-component --locked</pre>
+    </div>
+    <p>Estructura del proyecto (<code>hola/</code>):</p>
+    <div class="cmd-block">
+<pre>hola/
+  Cargo.toml          <span class="cmt"># [lib] crate-type = ["cdylib"], deps: wit-bindgen-rt</span>
+  wit/anvil-paso.wit  <span class="cmt"># el contrato (lo copias, 12 líneas)</span>
+  src/lib.rs          <span class="cmt"># tu función run</span></pre>
+    </div>
+    <div class="cmd-block">
+<pre><span class="cmt"># wit/anvil-paso.wit — el contrato de un paso</span>
+<span class="key">package</span> <span class="num">anvil:paso@0.1.0</span>;
+<span class="key">interface</span> <span class="num">paso</span> {
+  <span class="key">record</span> <span class="num">resultado</span> {
+    <span class="num">estado</span>: string,        <span class="cmt">// "paso" | "fallo" | "error"</span>
+    <span class="num">mensaje</span>: string,
+    <span class="num">valor-medido</span>: option&lt;f64&gt;,
+  }
+  <span class="num">run</span>: func(<span class="num">nombre</span>: string, <span class="num">intento</span>: s32) -&gt; resultado;
+}
+<span class="key">world</span> <span class="num">anvil-paso</span> { <span class="key">export</span> <span class="num">paso</span>; }</pre>
+    </div>
+    <div class="cmd-block">
+<pre><span class="cmt"># src/lib.rs — tu paso es una función</span>
+#[allow(warnings)]
+<span class="key">mod</span> <span class="num">bindings</span>;
+<span class="key">use</span> <span class="num">bindings</span>::exports::anvil::paso::paso::{Guest, Resultado};
+
+<span class="key">struct</span> <span class="num">Component</span>;
+
+<span class="key">impl</span> <span class="num">Guest</span> <span class="key">for</span> <span class="num">Component</span> {
+    <span class="key">fn</span> <span class="num">run</span>(<span class="num">nombre</span>: String, <span class="num">intento</span>: i32) -&gt; Resultado {
+        Resultado {
+            <span class="num">estado</span>: <span class="num">"paso"</span>.to_string(),
+            <span class="num">mensaje</span>: format!(<span class="num">"hola {nombre} (intento {intento})"</span>),
+            <span class="num">valor_medido</span>: Some(<span class="num">4.2</span>),
+        }
+    }
+}
+
+<span class="num">bindings</span>::export!(Component with_types_in bindings);</pre>
+    </div>
+
+    <h3>2. Compílalo a .wasm</h3>
+    <div class="cmd-block">
+<pre><span class="cmt"># en hola/ — genera target/wasm32-wasip1/debug/hola.wasm</span>
+cargo component build</pre>
+    </div>
+
+    <h3>3. Decláralo en una secuencia</h3>
+    <div class="cmd-block">
+<pre><span class="cmt"># secuencia.yaml</span>
+<span class="key">nombre</span>: mi_secuencia
+<span class="key">ejecutores</span>:
+  - { <span class="key">nombre</span>: hola, <span class="key">tipo</span>: wasm, <span class="key">path</span>: ./hola.wasm }
+<span class="key">main</span>:
+  - <span class="key">nombre</span>: mundo
+    <span class="key">ejecutor</span>: hola
+    <span class="key">reintentos</span>: <span class="num">1</span>
+    <span class="key">limite</span>: { <span class="key">tipo</span>: rango, <span class="key">min</span>: <span class="num">4.0</span>, <span class="key">max</span>: <span class="num">5.0</span> }</pre>
+    </div>
+
+    <h3>4. Ejecuta</h3>
+    <div class="cmd-block">
+<pre><span class="cmt"># Anvil spawnea el puente, que carga tu .wasm y lo traduce a gRPC.</span>
+<span class="cmt"># El motor evalúa el límite (4.2 está dentro de [4.0, 5.0]) y reporta.</span>
+./anvil secuencia.yaml</pre>
+    </div>
+    <div class="output-block">
+<pre>=== mi_secuencia: paso ===
+  [paso] mundo: hola mundo (intento 1)</pre>
+    </div>
+
+    <h3>Compilar Anvil (build desde source)</h3>
     <div class="cmd-block">
 <pre><span class="cmt"># 1. Guests WASM (motor + ejecutor) — workspace del core</span>
 cargo build --target wasm32-wasip2 -p motor -p ejecutor_pasos
 
-<span class="cmt"># 2. Host nativo (workspace aparte; wasmtime se compila aquí)</span>
+<span class="cmt"># 2. Puente (workspace aparte; wasmtime + tonic se compilan aquí)</span>
+cargo build --manifest-path packaging/anvil-puente-wasm/Cargo.toml
+
+<span class="cmt"># 3. Host nativo (embebe los guests y el puente)</span>
 cargo build --manifest-path packaging/anvil-host/Cargo.toml
 <span class="cmt"># → packaging/anvil-host/target/debug/anvil</span></pre>
     </div>
 
-    <h3>2. Correr una secuencia</h3>
-    <div class="cmd-block">
-<pre><span class="cmt"># Reporte textual a stdout; JSON y CSV a fichero</span>
-./packaging/anvil-host/target/debug/anvil ejemplos/subsecuencia.yaml \
-  --json ./out.json --csv ./out.csv</pre>
-    </div>
-    <div class="output-block">
-<pre>=== subsecuencia: paso ===
-  [paso] preparar: sequence call 'init_comun' → paso
-    [paso] preparar_canal: statement ok
-  [paso] test_fuentes: sequence call 'ejemplos/medir_fuentes.yaml' → paso
-    [paso] ajustar_canal: statement ok
-    [paso] medir_voltaje: medido: 4.2 V
-    [paso] desconectar_equipo: equipo desconectado</pre>
-    </div>
-
-    <h3>3. Probar las demos del repo</h3>
+    <h3>Demos del repo</h3>
     <div class="cmd-block">
 <pre>./anvil ejemplos/basica.yaml                       <span class="cmt"># lo básico</span>
 ./anvil ejemplos/limites.yaml                       <span class="cmt"># límites como datos</span>
 ./anvil ejemplos/variables.yaml                    <span class="cmt"># variables y expresiones</span>
 ./anvil ejemplos/subsecuencia.yaml                  <span class="cmt"># sequence call + subsecuencias</span>
 ./anvil ejemplos/demo_ejecutores.yaml               <span class="cmt"># routing: embebido + Python</span>
-./anvil ejemplos/demo_wasm.yaml                     <span class="cmt"># cargador .wasm por path</span>
+./anvil ejemplos/demo_wasm.yaml                     <span class="cmt"># tu primer .wasm (hola-paso)</span>
 ./anvil ejemplos/basica.yaml --limits ejemplos/limites.limits.yaml  <span class="cmt"># sidecar</span></pre>
     </div>
 
@@ -307,7 +377,9 @@ cargo build --manifest-path packaging/anvil-host/Cargo.toml
       </div>
       <div class="milestone done">
         <h3>M5-ext.2 — Cargador .wasm por path <span class="badge">✓</span></h3>
-        <p>Modelo <code>.vi</code> de TestStand en WASM. <code>ANVIL_PORT</code>, Store por path, deduplicación.</p>
+        <p>Modelo <code>.vi</code> de TestStand en WASM. Tu paso es una
+          función <code>run</code> (WIT <code>anvil:paso</code>); el host lo
+          puentea a gRPC. Sin clonar el repo.</p>
       </div>
       <div class="milestone">
         <h3>M5-base — Process model + CLI maduro</h3>
