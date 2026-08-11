@@ -1,443 +1,393 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Anvil — Secuenciador de test open-source</title>
-<meta name="description" content="Anvil: el secuenciador de test de producción open-source. Secuencia como datos en YAML, pasos en cualquier lenguaje tras un contrato gRPC, motor en WASM portable y aislado. La alternativa a TestStand sin lock-in.">
-<link rel="stylesheet" href="style.css">
+<title>ANLACO — The open stack for test benches</title>
+<meta name="description" content="ANLACO builds open-source software for test benches: Anvil, a sequencer where the sequence is data; Crucible, a digital twin of the bench; and the WebAssembly plumbing underneath.">
+<meta name="theme-color" content="#0e1013" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#fcfbf9" media="(prefers-color-scheme: light)">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="style.css">
+<meta property="og:title" content="ANLACO — The open stack for test benches">
+<meta property="og:description" content="A sequencer where the sequence is data, a digital twin of the bench, and the WebAssembly plumbing underneath. Open source, in the open.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://anlaco.github.io/">
 </head>
 <body>
 
+<a class="skip" href="#main">Skip to content</a>
+
 <header class="nav">
   <div class="nav-inner">
-    <a href="#" class="logo">
-      <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M4 6 L4 24 L24 24 L24 6 L4 6 Z" stroke="currentColor" stroke-width="2" fill="none"/>
-        <path d="M9 12 L19 12 M9 16 L19 16 M9 20 L15 20" stroke="currentColor" stroke-width="2"/>
-        <path d="M14 2 L14 6" stroke="currentColor" stroke-width="2"/>
-        <circle cx="14" cy="2" r="2" fill="currentColor"/>
+    <a class="brand" href="/" aria-label="ANLACO — home">
+      <svg class="mark" width="26" height="26" viewBox="0 0 32 32" aria-hidden="true">
+        <rect x="2.4" y="2.4" width="27.2" height="27.2" rx="7.5" class="mark-frame"/>
+        <path d="M8 21.5 L12.5 21.5 L12.5 11.5 L19 11.5 L19 17 L24 17" class="mark-trace"/>
       </svg>
-      <span>Anvil</span>
+      <span class="wordmark">ANLACO</span>
     </a>
-    <nav>
-      <a href="#que-es">Qué es</a>
-      <a href="#features">Características</a>
-      <a href="#arquitectura">Arquitectura</a>
-      <a href="#inicio">Inicio rápido</a>
-      <a href="#roadmap">Roadmap</a>
-      <a href="https://github.com/anlaco/anvil" class="gh-link">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.55 0-.27-.01-1.17-.02-2.12-3.2.7-3.88-1.37-3.88-1.37-.52-1.33-1.28-1.69-1.28-1.69-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.55-.29-5.24-1.28-5.24-5.69 0-1.26.45-2.29 1.19-3.1-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.18 1.18a11.05 11.05 0 0 1 5.8 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.84 1.19 3.1 0 4.42-2.69 5.39-5.25 5.68.41.36.78 1.07.78 2.16 0 1.56-.01 2.82-.01 3.2 0 .31.21.67.8.55C20.21 21.39 23.5 17.08 23.5 12 23.5 5.65 18.35.5 12 .5Z"/></svg>
-      </a>
+    <nav aria-label="Main">
+      <a href="#thesis">Why</a>
+      <a href="#stack">The stack</a>
+      <a href="#principles">Principles</a>
+      <a href="#status">Status</a>
+      <a class="nav-cta" href="https://github.com/anlaco">GitHub&nbsp;↗</a>
     </nav>
   </div>
 </header>
 
+<main id="main">
+
+<!-- ─────────────────────────── HERO ─────────────────────────── -->
 <section class="hero">
-  <div class="hero-inner">
-    <div class="hero-tag">Open-source · Rust + WASM · AGPL-3.0</div>
-    <h1>El secuenciador de test<br><span>de producción</span></h1>
-    <p class="lead">
-      Secuencia como datos en YAML. Pasos en cualquier lenguaje tras un
-      contrato gRPC. Motor en WASM portable y aislado. Resultados como dato
-      abierto. La alternativa a TestStand sin el lock-in de vendor ni el
-      editor cerrado.
-    </p>
-    <div class="hero-cta">
-      <a href="#inicio" class="btn btn-primary">Inicio rápido</a>
-      <a href="https://github.com/anlaco/anvil" class="btn btn-ghost">Ver en GitHub →</a>
+  <div class="wrap hero-grid">
+    <div class="hero-copy">
+      <p class="eyebrow">Independent · Open source · Rust &amp; WebAssembly</p>
+      <h1>The open stack for <em>test benches</em>.</h1>
+      <p class="lead">
+        Test software is tied to the hardware it runs on and to the licences it
+        was bought with. We are building the alternative in the open: a
+        sequencer where the sequence is <strong>data</strong>, a digital twin of
+        the bench so you can work without the instruments, and the plumbing that
+        lets both run inside a WebAssembly sandbox.
+      </p>
+      <div class="cta">
+        <a class="btn btn-solid" href="#stack">Explore the stack</a>
+        <a class="btn btn-line" href="https://github.com/anlaco">View the code</a>
+      </div>
     </div>
-    <div class="hero-code">
-<pre><span class="cmt"># secuencia.yaml — el "programa" de test es datos</span>
-<span class="key">nombre</span>: test_fuentes
-<span class="key">main</span>:
-  - <span class="key">nombre</span>: conectar_equipo
-    <span class="key">reintentos</span>: <span class="num">3</span>          <span class="cmt"># fallo transitorio → reintenta</span>
-  - <span class="key">nombre</span>: medir_voltaje
-    <span class="key">limite</span>: { <span class="key">tipo</span>: rango, <span class="key">min</span>: <span class="num">4.5</span>, <span class="key">max</span>: <span class="num">5.5</span> }
-  - <span class="key">nombre</span>: desconectar_equipo</pre>
-    </div>
+
+    <figure class="term" aria-label="Terminal session running a test sequence with Anvil">
+      <figcaption class="term-bar">
+        <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+        <span class="term-title">anvil 0.1.0</span>
+      </figcaption>
+<pre><span class="c-p">$</span> ./anvil secuencias/02-variables-scopes.yaml
+
+=== variables_scopes: <span class="c-ok">paso</span> ===
+  [<span class="c-ok">paso</span>] conectar_equipo: equipo conectado <span class="c-d">(intento 2)</span>
+  [<span class="c-ok">paso</span>] init_lote: statement ok
+  [<span class="c-ok">paso</span>] medir_voltaje: medido: <span class="c-n">4.2</span> V
+  [<span class="c-ok">paso</span>] verificar_medicion: condición cumplida
+  [<span class="c-ok">paso</span>] desconectar_equipo: equipo desconectado
+
+<span class="c-d"># one self-contained binary. wasmtime and the WASM
+# guests are hosted inside it. nothing to install.</span></pre>
+    </figure>
   </div>
 </section>
 
-<section id="que-es" class="section">
-  <div class="section-inner">
-    <h2>Qué es Anvil</h2>
+<!-- ─────────────────────────── THESIS ─────────────────────────── -->
+<section class="band" id="thesis">
+  <div class="wrap narrow">
+    <p class="kicker">Why we are building this</p>
+    <h2>A test bench is one of the last places in software where the tooling is still sold per seat.</h2>
     <p>
-      Anvil es un <strong>secuenciador de test</strong>: corre secuencias de
-      pasos contra equipo real, reintenta los que fallan y reporta el
-      resultado. Como NI TestStand, pero sin su coste (~$4,310/seat/año), sin
-      LabVIEW atado, sin deployment monolítico, sin reportes rígidos.
+      It ships as a closed binary, it refuses to run without the instrument
+      plugged in, and it holds the one asset that genuinely outlives the product
+      being qualified: the sequence itself. Engineers write test procedures that
+      survive three generations of a product, and then lose them to a licence
+      renewal or a discontinued driver.
     </p>
     <p>
-      La idea central, copiada de TestStand, es que <strong>el secuenciador es
-      el host que orquesta, no un runner que ejecuta tu código</strong>. La
-      secuencia es <strong>datos</strong> (YAML diffable, versionado en Git),
-      no un binario opaco. Cada paso se invoca <strong>por gRPC por su
-      nombre</strong> — nunca con una llamada directa — lo que aísla los
-      pasos entre sí y deja la puerta abierta a escribirlos en cualquier
-      lenguaje.
+      The ingredients for a different answer already exist — they just have not
+      been assembled. Sequences described as <strong>data</strong> instead of
+      code. Instruments described as <strong>behaviour</strong> instead of
+      drivers. A sandbox that arrived with a written specification instead of a
+      vendor.
     </p>
-    <div class="three-col">
-      <div class="card">
-        <h3>Secuencia = datos</h3>
-        <p>YAML diffable, versionado en Git. El motor lo recorre sin saber
-          qué hace cada paso. No un <code>.seq</code> binario.</p>
-      </div>
-      <div class="card">
-        <h3>Pasos en cualquier lenguaje</h3>
-        <p>El adapter <em>es</em> gRPC. No hay código de pegamento en el
-          motor ni runtime de vendor atado. Rust, Python, C, Zig, lo que sea.</p>
-      </div>
-      <div class="card">
-        <h3>Motor en WASM</h3>
-        <p>Portable y aislado: <code>./anvil secuencia.yaml</code> sin
-          instalador. Sandbox real, JIT a nativo, determinismo para
-          reintentos reproducibles.</p>
-      </div>
-    </div>
+    <blockquote>
+      You should be able to write, run and review a test sequence before the
+      bench exists.
+    </blockquote>
   </div>
 </section>
 
-<section id="features" class="section alt">
-  <div class="section-inner">
-    <h2>Características</h2>
-    <div class="features-grid">
-      <div class="feat">
-        <h3>Semántica Setup → Main → Cleanup</h3>
-        <p>El Main corta en el primer fallo; el Cleanup corre siempre — un
-          equipo que se quedó encendido es peor que una secuencia que
-          falló.</p>
-      </div>
-      <div class="feat">
-        <h3>Reintentos por paso</h3>
-        <p>Cada paso declara cuántos intentos admite. El número de intento
-          llega al paso, que puede simular fallos transitorios.</p>
-      </div>
-      <div class="feat">
-        <h3>Límites como datos first-class</h3>
-        <p>El límite vive en el YAML, no en el código del paso. El paso
-          mide; el motor evalúa el umbral declarado (ADR-0008). Cambiar
-          umbrales por lote no toca la secuencia.</p>
-      </div>
-      <div class="feat">
-        <h3>Variables y expresiones</h3>
-        <p>Scopes Locals / Parameters / FileGlobals. Expression engine
-          estilo Julia (cortocircuito, sin truthiness). Precondición por
-          paso, asignación de resultados, pasos <code>statement</code>
-          locales sin gRPC.</p>
-      </div>
-      <div class="feat">
-        <h3>Subsecuencias (sequence call)</h3>
-        <p>Invoca otra secuencia como un paso, con Parameters
-          entrada/salida <strong>by-reference</strong> como TestStand.
-          Inline por nombre o en archivo aparte por path. Detección de
-          ciclos al cargar.</p>
-      </div>
-      <div class="feat">
-        <h3>ResultSink desacoplado</h3>
-        <p>Consola, JSON y CSV de serie (estilo OpenTAP ResultListener).
-          SQLite/STDF post-MVP. Reintento de IO ante fallos transitorios.</p>
-      </div>
-      <div class="feat">
-        <h3>Routing multi-endpoint</h3>
-        <p><code>ejecutores:</code> en el YAML + <code>--ejecutor</code>
-          por CLI. Un paso lo atiende el ejecutor embebido (de serie), un
-          <code>.wasm</code> cargado por path, o un servidor gRPC en otra
-          máquina — el motor no distingue.</p>
-      </div>
-      <div class="feat">
-        <h3>Cargador de .wasm por path</h3>
-        <p>El modelo <code>.vi</code> de TestStand en WASM: compila tu paso
-          en Rust (una función <code>run</code>, interfaz WIT
-          <code>anvil:paso</code>), referéncialo por path en el YAML y
-          ejecuta. El host lo puentea a gRPC — el motor no distingue. Sin
-          recompilar el secuenciador.</p>
-      </div>
-      <div class="feat">
-        <h3>Un binario</h3>
-        <p>Descarga <code>anvil</code> y corre. wasmtime va embebido; los
-          dos guests WASM (motor + ejecutor) van dentro. Sin instalar
-          runtimes. Sin dependencias.</p>
-      </div>
-    </div>
-  </div>
-</section>
-
-<section id="arquitectura" class="section">
-  <div class="section-inner">
-    <h2>Arquitectura</h2>
-    <p>
-      Anvil hospeda <strong>wasmtime como librería</strong> y orquesta dos
-      guests WASM — <strong>motor</strong> (recorre la secuencia) y
-      <strong>ejecutor</strong> (despacha pasos por nombre) — en sandboxes
-      separados, hablando gRPC por loopback TCP restringido. El motor no
-      sabe qué hay detrás de cada endpoint: ejecutor embebido, <code>.wasm</code>
-      cargado por path, o servidor gRPC en otra máquina.
-    </p>
-    <div class="arch-diagram">
-<pre>                  ┌───────────────────────────────────────┐
-                  │  anvil-host (bin nativo, un binario)    │
-   Ingeniero      │  ┌──────────────┐  ┌───────────────┐  │   ResultSinks
-   de test ──────▶│  │  motor.wasm   │  │ ejecutor.wasm │  │──▶ (consola/JSON/
-   (authora YAML) │  │  (recorre la  │  │ (despacha por │  │    CSV/SQLite)
-                  │  │   secuencia)  │  │    nombre)    │  │
-   Operador ─────▶│  └──────┬───────┘  └───────┬───────┘  │
-   (corre CLI)    │         │ gRPC por loopback  │          │
-                  │         └───────────────────┘          │
-                  └───────────────────────────────────────┘
-                              │ gRPC (mismo contrato)
-                              ▼
-                  ┌───────────────────────────────────────┐
-                  │  Ejecutores de lenguaje / .wasm        │
-                  │  (Python · Rust · Zig · C · editor)     │
-                  │  en loopback o en otra máquina (Pi)     │
-                  └──────────────────┬────────────────────┘
-                                     │ SCPI/VISA (post-MVP)
-                                     ▼
-                              ┌────────────┐
-                              │ Instrumentos│
-                              └────────────┘</pre>
-    </div>
-    <p class="arch-note">
-      La frontera gRPC motor↔ejecutor es <strong>real</strong>
-      (aislamiento motor-side). El contrato es <code>paso.proto</code>:
-      <code>service EjecutorPasos { rpc Invoca(PeticionPaso) returns
-      (ResultadoPasoProto) }</code> — un método, unaria. No se rompe sin un
-      ADR (RNF-05).
-    </p>
-  </div>
-</section>
-
-<section id="inicio" class="section alt">
-  <div class="section-inner">
-    <h2>Inicio rápido</h2>
+<!-- ─────────────────────────── STACK ─────────────────────────── -->
+<section class="section" id="stack">
+  <div class="wrap">
+    <p class="kicker">The stack</p>
+    <h2>Three pieces, one boundary each.</h2>
     <p class="intro">
-      Anvil es <strong>un binario</strong>: lo descargas y corres. Por
-      dentro hospeda <code>wasmtime</code> y los dos guests WASM en sandbox,
-      hablando gRPC por loopback. No necesitas instalar nada. Para probar
-      <em>antes de compilar</em>: clona el repo y compila (abajo).
+      Every layer talks to the next one through a protocol, never through a
+      direct call. That is what makes a step replaceable, a language a free
+      choice, and a simulated instrument indistinguishable from a real one.
     </p>
 
-    <h3>1. Escribe tu paso en Rust</h3>
-    <p>
-      Un paso es un <strong>componente WASM</strong> que exporta la función
-      <code>run</code> (interfaz WIT <code>anvil:paso</code>). No sabes de
-      gRPC, no sabes de protobuf, no sabes de Anvil: es una función.
-      Necesitas <code>cargo</code> y una sola herramienta extra:
-    </p>
-    <div class="cmd-block">
-<pre>cargo install cargo-component --locked</pre>
-    </div>
-    <p>Estructura del proyecto (<code>hola/</code>):</p>
-    <div class="cmd-block">
-<pre>hola/
-  Cargo.toml          <span class="cmt"># [lib] crate-type = ["cdylib"], deps: wit-bindgen-rt</span>
-  wit/anvil-paso.wit  <span class="cmt"># el contrato (lo copias, 12 líneas)</span>
-  src/lib.rs          <span class="cmt"># tu función run</span></pre>
-    </div>
-    <div class="cmd-block">
-<pre><span class="cmt"># wit/anvil-paso.wit — el contrato de un paso</span>
-<span class="key">package</span> <span class="num">anvil:paso@0.1.0</span>;
-<span class="key">interface</span> <span class="num">paso</span> {
-  <span class="key">record</span> <span class="num">resultado</span> {
-    <span class="num">estado</span>: string,        <span class="cmt">// "paso" | "fallo" | "error"</span>
-    <span class="num">mensaje</span>: string,
-    <span class="num">valor-medido</span>: option&lt;f64&gt;,
-  }
-  <span class="num">run</span>: func(<span class="num">nombre</span>: string, <span class="num">intento</span>: s32) -&gt; resultado;
-}
-<span class="key">world</span> <span class="num">anvil-paso</span> { <span class="key">export</span> <span class="num">paso</span>; }</pre>
-    </div>
-    <div class="cmd-block">
-<pre><span class="cmt"># src/lib.rs — tu paso es una función</span>
-#[allow(warnings)]
-<span class="key">mod</span> <span class="num">bindings</span>;
-<span class="key">use</span> <span class="num">bindings</span>::exports::anvil::paso::paso::{Guest, Resultado};
+    <figure class="diagram">
+      <svg viewBox="0 0 860 396" role="img" aria-labelledby="diag-title">
+        <title id="diag-title">Architecture: a YAML sequence drives Anvil, which invokes steps over gRPC; steps talk SCPI or Modbus over TCP to either Crucible's simulated bench or real instruments.</title>
 
-<span class="key">struct</span> <span class="num">Component</span>;
+        <defs>
+          <marker id="ah" viewBox="0 0 8 8" refX="6.5" refY="4"
+                  markerWidth="5.5" markerHeight="5.5" orient="auto-start-reverse">
+            <path d="M0.5 0.5 L7 4 L0.5 7.5 Z" class="d-head"/>
+          </marker>
+        </defs>
 
-<span class="key">impl</span> <span class="num">Guest</span> <span class="key">for</span> <span class="num">Component</span> {
-    <span class="key">fn</span> <span class="num">run</span>(<span class="num">nombre</span>: String, <span class="num">intento</span>: i32) -&gt; Resultado {
-        Resultado {
-            <span class="num">estado</span>: <span class="num">"paso"</span>.to_string(),
-            <span class="num">mensaje</span>: format!(<span class="num">"hola {nombre} (intento {intento})"</span>),
-            <span class="num">valor_medido</span>: Some(<span class="num">4.2</span>),
-        }
-    }
-}
+        <!-- sequence -->
+        <rect class="d-box d-box-soft" x="322" y="8" width="216" height="42" rx="8"/>
+        <text class="d-t" x="430" y="34" text-anchor="middle">sequence.yaml</text>
+        <path class="d-arrow" d="M430 50 L430 82"/>
 
-<span class="num">bindings</span>::export!(Component with_types_in bindings);</pre>
+        <!-- anvil -->
+        <rect class="d-box d-box-key" x="170" y="82" width="520" height="72" rx="10"/>
+        <text class="d-t d-t-key" x="430" y="112" text-anchor="middle">Anvil — test sequencer</text>
+        <text class="d-s" x="430" y="134" text-anchor="middle">walks the sequence without knowing what any step does</text>
+        <path class="d-arrow" d="M430 154 L430 196"/>
+        <text class="d-lbl" x="444" y="180">gRPC over WASI sockets · wasi-grpc</text>
+
+        <!-- steps -->
+        <rect class="d-box" x="278" y="196" width="304" height="62" rx="10"/>
+        <text class="d-t" x="430" y="222" text-anchor="middle">Steps — WebAssembly sandbox</text>
+        <text class="d-s" x="430" y="242" text-anchor="middle">invoked by name · any language</text>
+
+        <!-- split -->
+        <path class="d-arrow-plain" d="M430 258 L430 282"/>
+        <path class="d-arrow-plain" d="M228 282 L632 282"/>
+        <path class="d-arrow" d="M228 282 L228 310"/>
+        <path class="d-arrow" d="M632 282 L632 310"/>
+        <text class="d-lbl" x="430" y="276" text-anchor="middle">SCPI · Modbus · TCP</text>
+
+        <!-- targets -->
+        <rect class="d-box d-box-key" x="88" y="310" width="280" height="66" rx="10"/>
+        <text class="d-t d-t-key" x="228" y="337" text-anchor="middle">Crucible</text>
+        <text class="d-s" x="228" y="357" text-anchor="middle">the simulated bench</text>
+
+        <rect class="d-box d-box-dash" x="492" y="310" width="280" height="66" rx="10"/>
+        <text class="d-t" x="632" y="337" text-anchor="middle">Real instruments</text>
+        <text class="d-s" x="632" y="357" text-anchor="middle">the rack you already own</text>
+      </svg>
+      <figcaption>
+        Anvil cannot tell the two apart — and that is the entire point.
+      </figcaption>
+    </figure>
+
+    <div class="cards">
+
+      <article class="card">
+        <header class="card-head">
+          <h3>Anvil</h3>
+          <span class="chip chip-live">v0.1.0 · in beta testing</span>
+        </header>
+        <p class="card-role">Test sequencer</p>
+        <p>
+          Runs sequences of steps against real equipment, retries what fails and
+          reports the result. The sequence is data, not code: the engine walks
+          it without knowing what each step does, and invokes every step
+          <strong>by name over gRPC</strong> — never through a direct call. That
+          isolates steps from each other and leaves the door open to writing
+          them in any language.
+        </p>
+        <ul class="facts">
+          <li>Rust compiled to <code>wasm32-wasip2</code>, hosted by wasmtime</li>
+          <li>One self-contained binary — nothing to install</li>
+          <li>Setup → Main → Cleanup, per-step retries, JSON and CSV sinks</li>
+          <li>Process models as sequences, not as engine callbacks</li>
+        </ul>
+        <p class="card-foot"><span class="lic">AGPL-3.0-or-later</span>
+          <a href="https://github.com/anlaco/anvil">Repository ↗</a></p>
+      </article>
+
+      <article class="card">
+        <header class="card-head">
+          <h3>Crucible</h3>
+          <span class="chip chip-wip">spec done · runtime in progress</span>
+        </header>
+        <p class="card-role">The digital twin of the bench</p>
+        <p>
+          An open standard for describing and simulating test benches. You
+          describe how a Keithley 2400 <strong>behaves</strong> — its state, its
+          commands, its measurement model — and a runtime serves it, speaking
+          the right protocol over the right transport, like a real device.
+          Simulink for instruments, not for physics.
+        </p>
+        <ul class="facts">
+          <li>Three layers kept apart: device, protocol, transport</li>
+          <li>SCPI and Modbus; TCP first, then GPIB, USB, serial, PXI</li>
+          <li>Deterministic models — a seeded run is a repeatable run</li>
+          <li>pyvisa, LabVIEW, MATLAB, C# or plain <code>netcat</code>, unmodified</li>
+        </ul>
+        <p class="card-foot"><span class="lic">Apache-2.0</span>
+          <a href="https://github.com/anlaco/Crucible">Repository ↗</a></p>
+      </article>
+
+      <article class="card">
+        <header class="card-head">
+          <h3>wasi-grpc</h3>
+          <span class="chip chip-live">v0.1.0 · published</span>
+        </header>
+        <p class="card-role">gRPC on native WASI sockets</p>
+        <p>
+          Rust's gRPC stack does not reach WebAssembly: <code>tonic</code> needs
+          <code>hyper</code>, <code>hyper</code> needs <code>tokio</code>, and
+          <code>tokio</code> rejects the <code>net</code> feature on wasm. But
+          wasmtime <em>does</em> ship native TCP through <code>wasi:sockets</code>.
+          What was missing was HTTP/2 on top. This is that piece.
+        </p>
+        <ul class="facts">
+          <li>Unary RPC, client and server, blocking I/O</li>
+          <li>HTTP/2 framing and full RFC 7541 HPACK with Huffman</li>
+          <li>No tokio, no hyper, no async runtime</li>
+          <li>Codec-agnostic — protobuf messages stay <code>prost</code>'s job</li>
+        </ul>
+        <p class="card-foot"><span class="lic">Apache-2.0</span>
+          <a href="https://github.com/anlaco/wasi-grpc">Repository ↗</a></p>
+      </article>
+
     </div>
-
-    <h3>2. Compílalo a .wasm</h3>
-    <div class="cmd-block">
-<pre><span class="cmt"># en hola/ — genera target/wasm32-wasip1/debug/hola.wasm</span>
-cargo component build</pre>
-    </div>
-
-    <h3>3. Decláralo en una secuencia</h3>
-    <div class="cmd-block">
-<pre><span class="cmt"># secuencia.yaml</span>
-<span class="key">nombre</span>: mi_secuencia
-<span class="key">ejecutores</span>:
-  - { <span class="key">nombre</span>: hola, <span class="key">tipo</span>: wasm, <span class="key">path</span>: ./hola.wasm }
-<span class="key">main</span>:
-  - <span class="key">nombre</span>: mundo
-    <span class="key">ejecutor</span>: hola
-    <span class="key">reintentos</span>: <span class="num">1</span>
-    <span class="key">limite</span>: { <span class="key">tipo</span>: rango, <span class="key">min</span>: <span class="num">4.0</span>, <span class="key">max</span>: <span class="num">5.0</span> }</pre>
-    </div>
-
-    <h3>4. Ejecuta</h3>
-    <div class="cmd-block">
-<pre><span class="cmt"># Anvil spawnea el puente, que carga tu .wasm y lo traduce a gRPC.</span>
-<span class="cmt"># El motor evalúa el límite (4.2 está dentro de [4.0, 5.0]) y reporta.</span>
-./anvil secuencia.yaml</pre>
-    </div>
-    <div class="output-block">
-<pre>=== mi_secuencia: paso ===
-  [paso] mundo: hola mundo (intento 1)</pre>
-    </div>
-
-    <h3>Compilar Anvil (build desde source)</h3>
-    <div class="cmd-block">
-<pre><span class="cmt"># 1. Guests WASM (motor + ejecutor) — workspace del core</span>
-cargo build --target wasm32-wasip2 -p motor -p ejecutor_pasos
-
-<span class="cmt"># 2. Puente (workspace aparte; wasmtime + tonic se compilan aquí)</span>
-cargo build --manifest-path packaging/anvil-puente-wasm/Cargo.toml
-
-<span class="cmt"># 3. Host nativo (embebe los guests y el puente)</span>
-cargo build --manifest-path packaging/anvil-host/Cargo.toml
-<span class="cmt"># → packaging/anvil-host/target/debug/anvil</span></pre>
-    </div>
-
-    <h3>Demos del repo</h3>
-    <div class="cmd-block">
-<pre>./anvil ejemplos/basica.yaml                       <span class="cmt"># lo básico</span>
-./anvil ejemplos/limites.yaml                       <span class="cmt"># límites como datos</span>
-./anvil ejemplos/variables.yaml                    <span class="cmt"># variables y expresiones</span>
-./anvil ejemplos/subsecuencia.yaml                  <span class="cmt"># sequence call + subsecuencias</span>
-./anvil ejemplos/demo_ejecutores.yaml               <span class="cmt"># routing: embebido + Python</span>
-./anvil ejemplos/demo_wasm.yaml                     <span class="cmt"># tu primer .wasm (hola-paso)</span>
-./anvil ejemplos/basica.yaml --limits ejemplos/limites.limits.yaml  <span class="cmt"># sidecar</span></pre>
-    </div>
-
-    <h3>CLI</h3>
-    <div class="cmd-block">
-<pre>anvil &lt;secuencia.yaml&gt; [--json &lt;r&gt;] [--csv &lt;r&gt;] [--limits &lt;r&gt;] [--ejecutor nombre=host:puerto]</pre>
-    </div>
-    <ul class="cli-list">
-      <li><strong>Consola</strong> siempre (reporte textual, stdout limpio).</li>
-      <li><strong><code>--json</code></strong> / <strong><code>--csv</code></strong>: vuelcan a fichero.</li>
-      <li><strong><code>--limits</code></strong>: sidecar de límites por nombre de paso (RF-30).</li>
-      <li><strong><code>--ejecutor nombre=host:puerto</code></strong>: re-apunta un ejecutor sin tocar el YAML (R&D vs. fábrica).</li>
-      <li><strong><code>--solo-loopback</code></strong>: rechaza cualquier <code>grpc</code> no-loopback (CI/paranoia).</li>
-    </ul>
   </div>
 </section>
 
-<section id="roadmap" class="section">
-  <div class="section-inner">
-    <h2>Roadmap</h2>
-    <p class="intro">
-      Hitos de lo más cercano a lo más lejano. Lo <strong>ya hecho</strong>
-      se marca; el resto es propuesta de orden, no compromiso de fecha.
-    </p>
-    <div class="roadmap-grid">
-      <div class="milestone done">
-        <h3>M0 — Prototipo <span class="badge">✓</span></h3>
-        <p>Motor + ejecutor gRPC sobre wasi-grpc. Semántica Setup→Main→Cleanup. Reintentos. Reporte textual.</p>
-      </div>
-      <div class="milestone done">
-        <h3>M1 — Secuencia como datos <span class="badge">✓</span></h3>
-        <p>Schema YAML de DefinicionSecuencia + cargador. El motor no cambia.</p>
-      </div>
-      <div class="milestone done">
-        <h3>M2 — ResultSink <span class="badge">✓</span></h3>
-        <p>Consola/JSON/CSV desacoplado (estilo OpenTAP). SQLite aplazado.</p>
-      </div>
-      <div class="milestone done">
-        <h3>M3 — Límites como datos <span class="badge">✓</span></h3>
-        <p>Límites high/low/comparación first-class. Property loader sidecar. El motor evalúa.</p>
-      </div>
-      <div class="milestone done">
-        <h3>M4 — Variables y control de flujo <span class="badge">✓</span></h3>
-        <p>Expression engine (Julia), scopes, precondición, disable, pause_on_fail, statement local.</p>
-      </div>
-      <div class="milestone done">
-        <h3>M4b — Sequence call <span class="badge">✓</span></h3>
-        <p>Subsecuencias inline y por path. Parameters by-reference. Detección de ciclos.</p>
-      </div>
-      <div class="milestone done">
-        <h3>M5-ext.1 — Routing multi-endpoint <span class="badge">✓</span></h3>
-        <p><code>ejecutores:</code> en YAML + override <code>--ejecutor</code>. Relajación acotada del loopback.</p>
-      </div>
-      <div class="milestone done">
-        <h3>M5-ext.2 — Cargador .wasm por path <span class="badge">✓</span></h3>
-        <p>Modelo <code>.vi</code> de TestStand en WASM. Tu paso es una
-          función <code>run</code> (WIT <code>anvil:paso</code>); el host lo
-          puentea a gRPC. Sin clonar el repo.</p>
-      </div>
-      <div class="milestone">
-        <h3>M5-base — Process model + CLI maduro</h3>
-        <p>Sequential simple + plug-ins. CLI headless. Empaquetado como binario único.</p>
-      </div>
-      <div class="milestone">
-        <h3>Post-MVP</h3>
-        <p>Paralelismo con cancelación jerárquica. Operator UI web. Editor visual. STDF/ATML. PyVISA nativo. StationGlobals. Custom step types.</p>
-      </div>
-    </div>
-    <p class="arch-note">
-      <strong>Fin del MVP</strong> ≈ M5-base. LID (Legacy Isolation Domain)
-      aplazado a post-M5-ext. Ver el
-      <a href="https://github.com/anlaco/anvil/blob/main/docs/roadmap.md">roadmap completo</a>.
-    </p>
-  </div>
-</section>
+<!-- ─────────────────────────── PRINCIPLES ─────────────────────────── -->
+<section class="band" id="principles">
+  <div class="wrap">
+    <p class="kicker">Principles</p>
+    <h2>Four decisions we do not intend to revisit.</h2>
 
-<section id="licencia" class="section alt">
-  <div class="section-inner">
-    <h2>Licencia</h2>
+    <ol class="principles">
+      <li>
+        <span class="num">01</span>
+        <h3>The sequence is data.</h3>
+        <p>
+          An engine that does not know what a step does can never become the
+          bottleneck for what a step is allowed to be. Sequences are YAML, the
+          engine walks them, and steps are named services on the other side of a
+          wire.
+        </p>
+      </li>
+      <li>
+        <span class="num">02</span>
+        <h3>Simulate before you buy.</h3>
+        <p>
+          A described instrument speaks exactly the same protocol as a real one.
+          Development, continuous integration and code review stop queuing for
+          time on a rack that costs more than the team.
+        </p>
+      </li>
+      <li>
+        <span class="num">03</span>
+        <h3>Sandboxed by construction.</h3>
+        <p>
+          Everything above a thin native layer compiles to WebAssembly.
+          Isolation becomes a property of the instruction set rather than a
+          policy someone remembered to configure.
+        </p>
+      </li>
+      <li>
+        <span class="num">04</span>
+        <h3>Open, with a boundary that means something.</h3>
+        <p>
+          What you <em>use</em> is copyleft. What you <em>link</em> is
+          permissive. One sentence, and every licensing question about this
+          stack answers itself.
+        </p>
+      </li>
+    </ol>
+
     <div class="lic-grid">
-      <div class="lic-card agpl">
-        <h3>anvil — AGPL-3.0</h3>
-        <p>El producto. Se <em>usa</em>, no se linka. La AGPL impide que
-          alguien lo cierre y lo revenda. <strong>No afecta a tus
-          secuencias</strong> — son datos, no obra derivada.</p>
+      <div class="lic-card lic-strong">
+        <h3>AGPL-3.0-or-later</h3>
+        <p class="lic-what">Anvil — the product</p>
+        <p>
+          It gets <em>used</em>, not linked. Copyleft stops anyone closing it
+          and reselling it. Running it on your plant floor, with your own
+          sequences, or patched for internal use, triggers no obligation
+          whatsoever — <strong>your sequences remain yours</strong>.
+        </p>
       </div>
-      <div class="lic-card apache">
-        <h3>Libs — Apache-2.0</h3>
-        <p><code>wasi-grpc</code>, <code>wasi-visa</code>, interfaces WIT.
-          Se linkan en código ajeno. Sin copyleft ahí: tu código te
-          pertenece.</p>
+      <div class="lic-card">
+        <h3>Apache-2.0</h3>
+        <p class="lic-what">Crucible, wasi-grpc, the WIT interfaces</p>
+        <p>
+          These get <em>linked</em> into other people's code. We want them
+          adopted as a reference, including by companies that will never
+          contribute a line back. That is the trade, and it is deliberate.
+        </p>
       </div>
     </div>
-    <p class="arch-note">
-      Un paso de test se <strong>linka</strong> con las librerías; copyleft
-      ahí contagiaría el código de quien las use. En el secuenciador no
-      ocurre. Ver <a href="https://github.com/anlaco/anvil/blob/main/docs/licencia.md">licencia.md</a>.
+  </div>
+</section>
+
+<!-- ─────────────────────────── STATUS ─────────────────────────── -->
+<section class="section" id="status">
+  <div class="wrap narrow">
+    <p class="kicker">Where we actually are</p>
+    <h2>Early, and saying so.</h2>
+    <p>
+      Most of this is young. We would rather you know that from the homepage
+      than discover it after an afternoon of integration work.
+    </p>
+    <dl class="status-list">
+      <dt><span class="chip chip-live">shipped</span> Anvil 0.1.0</dt>
+      <dd>
+        A working sequencer, currently being hammered in structured beta rounds
+        against realistic benches — a solenoid valve, a battery pack, an RTD
+        calibration. The findings notebook is public, open bugs and all.
+      </dd>
+
+      <dt><span class="chip chip-wip">in progress</span> Crucible</dt>
+      <dd>
+        The profile format and the bench topology spec are written and stable.
+        The reference runtime is under construction: load a profile, hold state,
+        match commands, serve the device over TCP.
+      </dd>
+
+      <dt><span class="chip chip-live">shipped</span> wasi-grpc 0.1.0</dt>
+      <dd>
+        Unary RPC works and is used in production by Anvil. Everything it does
+        not do — streaming, TLS, connection pooling — is enumerated in the
+        README as a known gap rather than left for you to find.
+      </dd>
+    </dl>
+  </div>
+</section>
+
+<!-- ─────────────────────────── CONTACT ─────────────────────────── -->
+<section class="band band-end" id="contact">
+  <div class="wrap narrow center">
+    <p class="kicker">Get involved</p>
+    <h2>We are looking for benches to be wrong about.</h2>
+    <p>
+      The fastest way to make this stack real is to point it at a bench we did
+      not imagine. If you run test equipment and any of the above sounds like
+      your problem, we want to hear about it — especially the parts where our
+      assumptions break.
+    </p>
+    <div class="cta cta-center">
+      <a class="btn btn-solid" href="mailto:anlaco@proton.me">Get in touch</a>
+      <a class="btn btn-line" href="https://github.com/anlaco">Follow the work</a>
+    </div>
+    <p class="fineprint">
+      The Crucible format is still open for comment. Now is the cheap moment to
+      change it.
     </p>
   </div>
 </section>
+
+</main>
 
 <footer class="footer">
-  <div class="footer-inner">
-    <div class="footer-left">
-      <span class="footer-logo">
-        <svg width="20" height="20" viewBox="0 0 28 28" fill="none"><path d="M4 6 L4 24 L24 24 L24 6 L4 6 Z" stroke="currentColor" stroke-width="2" fill="none"/><path d="M9 12 L19 12 M9 16 L19 16 M9 20 L15 20" stroke="currentColor" stroke-width="2"/></svg>
-        Anvil
-      </span>
-      <p>Secuenciador de test open-source · Rust + WASM · AGPL-3.0</p>
+  <div class="wrap footer-inner">
+    <div class="footer-brand">
+      <svg class="mark" width="22" height="22" viewBox="0 0 32 32" aria-hidden="true">
+        <rect x="2.4" y="2.4" width="27.2" height="27.2" rx="7.5" class="mark-frame"/>
+        <path d="M8 21.5 L12.5 21.5 L12.5 11.5 L19 11.5 L19 17 L24 17" class="mark-trace"/>
+      </svg>
+      <span class="wordmark">ANLACO</span>
+      <p>Independent test-bench software, built in the open.</p>
     </div>
-    <div class="footer-right">
-      <a href="https://github.com/anlaco/anvil">GitHub</a>
-      <a href="https://github.com/anlaco/anvil/blob/main/docs/README.md">Docs</a>
-      <a href="https://github.com/anlaco/anvil/blob/main/docs/roadmap.md">Roadmap</a>
-      <a href="https://github.com/anlaco/anvil/blob/main/LICENSE">Licencia</a>
-    </div>
+    <nav class="footer-links" aria-label="Footer">
+      <a href="https://github.com/anlaco/anvil">Anvil</a>
+      <a href="https://github.com/anlaco/Crucible">Crucible</a>
+      <a href="https://github.com/anlaco/wasi-grpc">wasi-grpc</a>
+      <a href="https://github.com/anlaco">GitHub</a>
+      <a href="mailto:anlaco@proton.me">Contact</a>
+    </nav>
+  </div>
+  <div class="wrap footer-note">
+    <p>No trackers. No analytics. No JavaScript.</p>
   </div>
 </footer>
 
