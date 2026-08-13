@@ -4,13 +4,13 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>ANLACO — The open stack for test benches</title>
-<meta name="description" content="ANLACO builds open-source software for test benches: Anvil, a sequencer where the sequence is data; Crucible, a digital twin of the bench; and the WebAssembly plumbing underneath.">
+<meta name="description" content="ANLACO builds open-source software for test benches: Anvil, a sequencer where the sequence is data; Crucible, a digital twin of the bench; and the WebAssembly plumbing underneath. Evaluate the whole stack without owning an instrument.">
 <meta name="theme-color" content="#0e1013" media="(prefers-color-scheme: dark)">
 <meta name="theme-color" content="#fcfbf9" media="(prefers-color-scheme: light)">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="style.css">
 <meta property="og:title" content="ANLACO — The open stack for test benches">
-<meta property="og:description" content="A sequencer where the sequence is data, a digital twin of the bench, and the WebAssembly plumbing underneath. Open source, in the open.">
+<meta property="og:description" content="A sequencer where the sequence is data, a digital twin of the bench, and the WebAssembly plumbing underneath. Open source — and you can evaluate it tonight, without an instrument.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://anlaco.github.io/">
 </head>
@@ -30,6 +30,7 @@
     <nav aria-label="Main">
       <a href="#thesis">Why</a>
       <a href="#stack">The stack</a>
+      <a href="#demo">Demo</a>
       <a href="#principles">Principles</a>
       <a href="#status">Status</a>
       <a class="nav-cta" href="https://github.com/anlaco">GitHub&nbsp;↗</a>
@@ -52,8 +53,12 @@
         the bench so you can work without the instruments, and the plumbing that
         lets both run inside a WebAssembly sandbox.
       </p>
+      <p class="hook">
+        <strong>You can evaluate it tonight, without an instrument.</strong>
+        The bench in the terminal is simulated, and the sequencer does not know.
+      </p>
       <div class="cta">
-        <a class="btn btn-solid" href="#stack">Explore the stack</a>
+        <a class="btn btn-solid" href="#demo">Run it yourself</a>
         <a class="btn btn-line" href="https://github.com/anlaco">View the code</a>
       </div>
     </div>
@@ -61,19 +66,22 @@
     <figure class="term" aria-label="Terminal session running a test sequence with Anvil">
       <figcaption class="term-bar">
         <span class="dot"></span><span class="dot"></span><span class="dot"></span>
-        <span class="term-title">anvil 0.1.0</span>
+        <span class="term-title">anvil 0.1.0 · no instrument attached</span>
       </figcaption>
-<pre><span class="c-p">$</span> ./anvil secuencias/02-variables-scopes.yaml
+<pre><span class="c-d"># terminal 1 — the bench that isn't there</span>
+<span class="c-p">$</span> ./crucible perfiles/keithley_2400_demo.yaml
+Crucible: KEITHLEY-2400 en <span class="c-n">127.0.0.1:5025</span>
 
-=== variables_scopes: <span class="c-ok">paso</span> ===
-  [<span class="c-ok">paso</span>] conectar_equipo: equipo conectado <span class="c-d">(intento 2)</span>
-  [<span class="c-ok">paso</span>] init_lote: statement ok
-  [<span class="c-ok">paso</span>] medir_voltaje: medido: <span class="c-n">4.2</span> V
-  [<span class="c-ok">paso</span>] verificar_medicion: condición cumplida
-  [<span class="c-ok">paso</span>] desconectar_equipo: equipo desconectado
+<span class="c-d"># terminal 2 — the sequencer, unmodified</span>
+<span class="c-p">$</span> ./anvil ejemplos/scpi.yaml
 
-<span class="c-d"># one self-contained binary. wasmtime and the WASM
-# guests are hosted inside it. nothing to install.</span></pre>
+=== scpi_demo: <span class="c-ok">paso</span> ===
+  [<span class="c-ok">paso</span>] medir_voltaje_scpi:
+         SCPI medido: <span class="c-n">4.501385029307777</span> V
+
+<span class="c-d"># nobody wrote glue. Anvil sends
+# MEASURE:VOLTAGE? because that is SCPI,
+# and Crucible answers for the same reason.</span></pre>
     </figure>
   </div>
 </section>
@@ -193,7 +201,7 @@
       <article class="card">
         <header class="card-head">
           <h3>Crucible</h3>
-          <span class="chip chip-wip">spec done · runtime in progress</span>
+          <span class="chip chip-live">runtime working · serving SCPI</span>
         </header>
         <p class="card-role">The digital twin of the bench</p>
         <p>
@@ -237,6 +245,58 @@
       </article>
 
     </div>
+  </div>
+</section>
+
+<!-- ─────────────────────────── DEMO ─────────────────────────── -->
+<section class="section" id="demo">
+  <div class="wrap">
+    <p class="kicker">See for yourself</p>
+    <h2>Try it without an instrument.</h2>
+    <p class="intro">
+      Evaluating test software normally means booking rack time: you cannot see
+      the tool work until the hardware it needs is in front of you. Here the
+      instrument is described in a YAML file, so the whole thing is a laptop and
+      an evening. What follows is the exact session shown above.
+    </p>
+
+    <div class="steps">
+      <article class="step">
+        <p class="step-n">01</p>
+        <h3>Serve a Keithley 2400 that does not exist</h3>
+        <p>
+          Crucible reads a profile — state, commands, measurement model — and
+          serves the device over TCP, exactly as the real one speaks it.
+        </p>
+<pre class="cmd"><span class="c-d"># in the Crucible repository</span>
+cargo build
+./target/debug/crucible \
+  perfiles/keithley_2400_demo.yaml</pre>
+      </article>
+
+      <article class="step">
+        <p class="step-n">02</p>
+        <h3>Point a real sequencer at it</h3>
+        <p>
+          Anvil is not told that anything is simulated. It runs its SCPI smoke
+          sequence the way it would against the instrument on your bench.
+        </p>
+<pre class="cmd"><span class="c-d"># in the Anvil repository</span>
+./anvil ejemplos/scpi.yaml
+
+=== scpi_demo: <span class="c-ok">paso</span> ===
+  [<span class="c-ok">paso</span>] medir_voltaje_scpi:
+         SCPI medido: <span class="c-n">4.501385…</span> V</pre>
+      </article>
+    </div>
+
+    <p class="demo-note">
+      The two projects were built separately and were never adapted to each
+      other. Anvil sends <code>MEASURE:VOLTAGE?</code> because that is SCPI;
+      Crucible answers because that is SCPI. The decimals come from a seeded
+      measurement model — same seed, same reading, which is what makes a
+      simulated bench usable in continuous integration.
+    </p>
   </div>
 </section>
 
@@ -323,15 +383,21 @@
       <dt><span class="chip chip-live">shipped</span> Anvil 0.1.0</dt>
       <dd>
         A working sequencer, currently being hammered in structured beta rounds
-        against realistic benches — a solenoid valve, a battery pack, an RTD
-        calibration. The findings notebook is public, open bugs and all.
+        against <strong>18 realistic benches</strong> — a solenoid valve, a
+        battery pack, an RTD calibration, and on into a protection relay to
+        IEC 60255-151, EMC pre-compliance to IEC 61000-4 and a class 1.0 smart
+        meter to IEC 62053-21. Every defect the rounds find is filed in the
+        open, in the issue tracker, including the ones that are still open.
       </dd>
 
-      <dt><span class="chip chip-wip">in progress</span> Crucible</dt>
+      <dt><span class="chip chip-live">working</span> Crucible</dt>
       <dd>
-        The profile format and the bench topology spec are written and stable.
-        The reference runtime is under construction: load a profile, hold state,
-        match commands, serve the device over TCP.
+        The profile format and the bench topology spec are written and stable,
+        and the reference runtime now does the job: it loads a profile, holds
+        state across connections, matches commands and serves the device over
+        TCP. The session at the top of this page is that runtime. What is still
+        ahead is breadth — more protocols and more transports, starting from
+        SCPI over TCP.
       </dd>
 
       <dt><span class="chip chip-live">shipped</span> wasi-grpc 0.1.0</dt>
