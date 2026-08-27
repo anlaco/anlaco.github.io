@@ -31,6 +31,7 @@
       <a href="#thesis">Why</a>
       <a href="#stack">The stack</a>
       <a href="#demo">Demo</a>
+      <a href="quickstart.html">Quick start</a>
       <a href="#principles">Principles</a>
       <a href="#status">Status</a>
       <a class="nav-cta" href="https://github.com/anlaco">GitHub&nbsp;↗</a>
@@ -75,8 +76,8 @@ Crucible: KEITHLEY-2400 en <span class="c-n">127.0.0.1:5025</span>
 <span class="c-d"># terminal 2 — the sequencer, unmodified</span>
 <span class="c-p">$</span> ./anvil ejemplos/scpi.yaml
 
-=== scpi_demo: <span class="c-ok">paso</span> ===
-  [<span class="c-ok">paso</span>] medir_voltaje_scpi:
+=== scpi_demo: <span class="c-ok">pass</span> ===
+  [<span class="c-ok">pass</span>] medir_voltaje_scpi:
          SCPI medido: <span class="c-n">4.501385029307777</span> V
 
 <span class="c-d"># nobody wrote glue. Anvil sends
@@ -297,6 +298,10 @@ cargo build
       measurement model — same seed, same reading, which is what makes a
       simulated bench usable in continuous integration.
     </p>
+
+    <p class="cta">
+      <a class="btn btn-solid" href="quickstart.html">Write your own step &rarr;</a>
+    </p>
   </div>
 </section>
 
@@ -380,7 +385,7 @@ cargo build
       than discover it after an afternoon of integration work.
     </p>
     <dl class="status-list">
-      <dt><span class="chip chip-live">shipped</span> Anvil 0.1.0</dt>
+      <dt><span class="chip chip-live">shipped</span> Anvil 0.3.0</dt>
       <dd>
         A working sequencer, currently being hammered in structured beta rounds
         against <strong>18 realistic benches</strong> — a solenoid valve, a

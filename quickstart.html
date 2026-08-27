@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Quick start — write your first Anvil step in Python</title>
+<meta name="description" content="From nothing to a running test sequence in about twenty minutes: write a step as a plain Python function, declare the sequence in YAML, and let Anvil check your names before it touches a unit. No instrument required.">
+<meta name="theme-color" content="#0e1013" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#fcfbf9" media="(prefers-color-scheme: light)">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="style.css">
+<meta property="og:title" content="Quick start — write your first Anvil step in Python">
+<meta property="og:description" content="A step is a decorated Python function. A sequence is a YAML file. Anvil asks the executor what it serves and checks your sequence before the first measurement.">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://anlaco.github.io/quickstart.html">
+</head>
+<body>
+
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="nav">
+  <div class="nav-inner">
+    <a class="brand" href="/" aria-label="ANLACO — home">
+      <svg class="mark" width="26" height="26" viewBox="0 0 32 32" aria-hidden="true">
+        <rect x="2.4" y="2.4" width="27.2" height="27.2" rx="7.5" class="mark-frame"/>
+        <path d="M8 21.5 L12.5 21.5 L12.5 11.5 L19 11.5 L19 17 L24 17" class="mark-trace"/>
+      </svg>
+      <span class="wordmark">ANLACO</span>
+    </a>
+    <nav aria-label="Main">
+      <a href="/#thesis">Why</a>
+      <a href="/#stack">The stack</a>
+      <a href="/#demo">Demo</a>
+      <a href="/#status">Status</a>
+      <a class="nav-cta" href="https://github.com/anlaco/anvil">Anvil&nbsp;↗</a>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+
+<!-- ─────────────────────────────── HERO ─────────────────────────────── -->
+<section class="section">
+  <div class="wrap">
+    <p class="kicker">Quick start</p>
+    <h2>Your first step, in Python, in about twenty minutes.</h2>
+    <p class="intro">
+      By the end of this page you will have written a test step as an ordinary
+      Python function, declared a sequence that runs it, and watched Anvil
+      refuse to start a run because you mistyped a parameter name. No
+      instrument, no rack time, no licence.
+    </p>
+
+    <p class="hook">
+      <strong>The one idea to carry through it.</strong> The step measures; the
+      sequence judges. Your Python code never contains the pass/fail threshold,
+      so tightening a tolerance is a text edit — not a recompile, not a
+      redeploy, and not a phone call to whoever wrote the code.
+    </p>
+
+    <h3>What you need</h3>
+    <ul class="facts">
+      <li>Linux on x86-64. The binary is statically linked; there is nothing to install.</li>
+      <li>Python 3.10 or newer, with the standard <code>venv</code> module.</li>
+      <li>A clone of the Anvil repository — the Python executor lives there. You will <em>not</em> build it.</li>
+    </ul>
+
+    <p class="fineprint">
+      The Python executor is not yet packaged for download on its own; for now
+      you copy two files out of the repository. That is a rough edge we know
+      about, and it is the only part of this page that will get shorter.
+    </p>
+  </div>
+</section>
+
+<!-- ───────────────────────────── SET-UP ─────────────────────────────── -->
+<section class="band">
+  <div class="wrap">
+    <p class="kicker">Once, and never again</p>
+    <h2>Set-up</h2>
+    <p class="intro">
+      Four commands. Everything lands in one folder you can delete when you are
+      done.
+    </p>
+
+    <div class="steps steps-linear">
+
+      <article class="step">
+        <p class="step-n">01</p>
+        <h3>Get the binary</h3>
+        <p>
+          One file, no runtime, no dependencies. It carries its own WebAssembly
+          engine, which is why it weighs what it weighs and why it runs on a
+          factory PC with no internet.
+        </p>
+<pre class="cmd">mkdir anvil-quickstart &amp;&amp; cd anvil-quickstart
+
+<span class="c-d"># from github.com/anlaco/anvil/releases</span>
+tar xzf anvil-*-x86_64-linux-musl.tar.gz
+./anvil --version</pre>
+      </article>
+
+      <article class="step">
+        <p class="step-n">02</p>
+        <h3>An isolated Python</h3>
+        <p>
+          A <em>virtual environment</em> is a folder with its own copy of
+          Python. Nothing you install can break the Python your system uses.
+          <code>grpcio</code> is how your steps and Anvil talk to each other.
+        </p>
+<pre class="cmd">python3 -m venv venv
+./venv/bin/pip install grpcio grpcio-tools</pre>
+        <p class="fineprint">
+          If this fails, delete the <code>venv</code> folder before retrying.
+          A half-created environment is reused on the next attempt and fails
+          again with the same message, which sends you looking in the wrong
+          place.
+        </p>
+      </article>
+
+      <article class="step">
+        <p class="step-n">03</p>
+        <h3>Bring in the executor</h3>
+        <p>
+          <code>server.py</code> is the executor: the program that holds your
+          steps and waits to be asked. <strong>You never edit it.</strong>
+          <code>anvil_step</code> is the toolbox you import when writing a step.
+        </p>
+<pre class="cmd">git clone https://github.com/anlaco/anvil.git
+cp -r anvil/executores/python/anvil_step .
+cp    anvil/executores/python/server.py  .</pre>
+      </article>
+
+      <article class="step">
+        <p class="step-n">04</p>
+        <h3>Generate the translators</h3>
+        <p>
+          Anvil and Python are written in different languages. A contract file
+          defines the words they share, and this generates the Python side of
+          it. The two <code>paso_pb2*.py</code> files are machine-written: never
+          read, never edited, regenerated only if the contract changes.
+        </p>
+<pre class="cmd">./venv/bin/python -m grpc_tools.protoc \
+  -I anvil/crates/modelo \
+  --python_out=. --grpc_python_out=. \
+  anvil/crates/modelo/paso.proto
+
+./venv/bin/python server.py --list
+<span class="c-d">this executor serves no steps
+(nothing found under the steps path)</span></pre>
+        <p>
+          That last line is success, not failure: the executor works and is
+          telling you honestly that its catalogue is empty. You have not
+          written a step yet.
+        </p>
+      </article>
+
+    </div>
+  </div>
+</section>
+
+<!-- ──────────────────────────── THE WORK ────────────────────────────── -->
+<section class="section">
+  <div class="wrap">
+    <p class="kicker">Every day from now on</p>
+    <h2>Write a step, run a sequence.</h2>
+
+    <div class="steps steps-linear">
+
+      <article class="step">
+        <p class="step-n">05</p>
+        <h3>The step is a function</h3>
+        <p>
+          Put this in <code>steps/my_steps.py</code>. The decorator is the whole
+          registration: no manifest, no config file, no list to keep in sync.
+        </p>
+<pre class="cmd"><span class="c-d">from anvil_step import Result, step</span>
+
+@step
+def measure_temperature(sensor: float) -&gt; Result:
+    """Reads the temperature of a sensor."""
+    degrees = 20.0 + sensor
+    return Result.measured(degrees, message=f"{degrees} C")</pre>
+        <p>
+          Every part of that signature tells Anvil something.
+          <code>sensor</code> is the name a sequence will use;
+          <code>: float</code> says it is a number; and having no default makes
+          it <strong>required</strong>.
+        </p>
+        <p>
+          Note what is <em>absent</em>: nowhere does this code say whether
+          22.5&nbsp;°C is acceptable. That is not the step's business.
+        </p>
+      </article>
+
+      <article class="step">
+        <p class="step-n">06</p>
+        <h3>The signature <em>is</em> the catalogue</h3>
+        <p>
+          Ask the executor what it serves. You wrote that description in exactly
+          one place — the function — so it cannot drift from the code that runs.
+        </p>
+<pre class="cmd">./venv/bin/python server.py --list
+
+<span class="c-d">measure_temperature(sensor: number)
+    Reads the temperature of a sensor.</span></pre>
+        <p>
+          Now start it and leave it running in a second terminal. It listens,
+          and it reads your files <strong>once, at start-up</strong> — change a
+          step, restart it.
+        </p>
+<pre class="cmd">./venv/bin/python server.py
+<span class="c-d">python executor listening on 127.0.0.1:9101 — 1 step(s)</span></pre>
+      </article>
+
+      <article class="step">
+        <p class="step-n">07</p>
+        <h3>The sequence is data</h3>
+        <p>
+          This is the file a test engineer writes and reviews — plain text, in a
+          diff, with no programmer in the loop. Save it as
+          <code>hello.yaml</code>.
+        </p>
+<pre class="cmd">name: hello_bench
+
+executors:
+  - name: python
+    type: grpc
+    host: 127.0.0.1
+    port: 9101
+
+main:
+  - name: measure_temperature
+    executor: python
+    inputs:
+      sensor: 2.5
+    limit:
+      type: range
+      min: 20.0
+      max: 25.0</pre>
+        <p>
+          <code>limit</code> is the acceptance criterion, and it lives here
+          rather than in the code. The day that instrument moves to another
+          machine, only <code>host</code> changes.
+        </p>
+      </article>
+
+      <article class="step">
+        <p class="step-n">08</p>
+        <h3>Check before you measure</h3>
+        <p>
+          Anvil asks each executor what it serves and checks your sequence
+          against the answer — <strong>once, before the first step</strong>.
+          Mistype a name and see for yourself:
+        </p>
+<pre class="cmd">./anvil hello.yaml --validate --with-executors
+
+<span class="c-d">  - step 'measure_temperature' (python): it takes no
+    input called 'sensorr' (it takes: sensor)
+  - step 'measure_temperature' (python): the input
+    'sensor' is required and the sequence does not send it</span></pre>
+        <p>
+          Without that check the run would have started, the executor would have
+          dropped the unknown value, and the step would have
+          <strong>measured something else and reported a pass</strong>. The
+          message names the parameter you actually have, because the mistake is
+          nearly always a typo.
+        </p>
+        <p class="fineprint">
+          <code>--validate</code> on its own reads and checks the file without
+          connecting to anything, which is what makes it usable in CI with no
+          hardware. <code>--with-executors</code> is the explicit opt-in for
+          when they are up.
+        </p>
+      </article>
+
+      <article class="step">
+        <p class="step-n">09</p>
+        <h3>Run it</h3>
+        <p>
+          The verdict is also the exit code — <code>0</code> passed, anything
+          else did not — so a sequence can gate whatever comes after it.
+        </p>
+<pre class="cmd">./anvil hello.yaml
+
+=== hello_bench: <span class="c-ok">pass</span> ===
+  [<span class="c-ok">pass</span>] measure_temperature: <span class="c-n">22.5</span> C</pre>
+      </article>
+
+      <article class="step">
+        <p class="step-n">10</p>
+        <h3>Now change the criterion, not the code</h3>
+        <p>
+          Set <code>max: 22.0</code> in the YAML. Touch no Python. Do not
+          restart the executor. Run it again:
+        </p>
+<pre class="cmd">=== hello_bench: <span class="c-p">fail</span> ===
+  [<span class="c-p">fail</span>] measure_temperature: …
+<span class="c-d">$ echo $?
+1</span></pre>
+        <p>
+          The step still measured 22.5 and still reported it happily. What
+          changed is the verdict, and the detail line names the value it read
+          and the range it was judged against.
+        </p>
+        <p>
+          That is the whole thesis in one edit. Whoever owns the tolerance can
+          change it without owning the code — and the change is a line in a
+          text file, with an author and a date, not a rebuilt binary nobody can
+          diff.
+        </p>
+      </article>
+
+    </div>
+
+    <p class="demo-note">
+      From here: give a step several inputs, return extra named values that land
+      in the report alongside the measurement, split a long sequence into
+      reusable sub-sequences, or emit the results as JSON or CSV for whatever
+      consumes them next. All of it is in the repository documentation.
+    </p>
+  </div>
+</section>
+
+<!-- ─────────────────────────────── CTA ──────────────────────────────── -->
+<section class="band band-end">
+  <div class="wrap center">
+    <h2>The sequence is data. The step is a function.</h2>
+    <p class="intro center">
+      Everything above runs on a laptop. When the instrument is real, only the
+      body of the function changes.
+    </p>
+    <p class="cta cta-center">
+      <a class="btn btn-solid" href="https://github.com/anlaco/anvil">Anvil on GitHub&nbsp;↗</a>
+      <a class="btn btn-line" href="/#demo">See it against a simulated instrument</a>
+    </p>
+  </div>
+</section>
+
+</main>
+
+<footer class="footer">
+  <div class="wrap footer-inner">
+    <div class="footer-brand">
+      <svg class="mark" width="22" height="22" viewBox="0 0 32 32" aria-hidden="true">
+        <rect x="2.4" y="2.4" width="27.2" height="27.2" rx="7.5" class="mark-frame"/>
+        <path d="M8 21.5 L12.5 21.5 L12.5 11.5 L19 11.5 L19 17 L24 17" class="mark-trace"/>
+      </svg>
+      <span class="wordmark">ANLACO</span>
+      <p>Independent test-bench software, built in the open.</p>
+    </div>
+    <nav class="footer-links" aria-label="Footer">
+      <a href="https://github.com/anlaco/anvil">Anvil</a>
+      <a href="https://github.com/anlaco/Crucible">Crucible</a>
+      <a href="https://github.com/anlaco/wasi-grpc">wasi-grpc</a>
+      <a href="https://github.com/anlaco">GitHub</a>
+      <a href="mailto:anlaco@proton.me">Contact</a>
+    </nav>
+  </div>
+  <div class="wrap footer-note">
+    <p>No trackers. No analytics. No JavaScript.</p>
+  </div>
+</footer>
+
+</body>
+</html>

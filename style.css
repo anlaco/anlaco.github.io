@@ -216,6 +216,8 @@ p code, li code, dd code {
   display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.3rem;
 }
 @media (max-width: 860px) { .steps { grid-template-columns: 1fr; } }
+/* A walkthrough is read top to bottom: one column, whatever the width. */
+.steps-linear { grid-template-columns: 1fr; }
 .step {
   background: var(--surface); border: 1px solid var(--line);
   border-radius: 11px; padding: 1.7rem 1.6rem;
