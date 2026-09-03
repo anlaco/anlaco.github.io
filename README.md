@@ -12,7 +12,8 @@ native WASI sockets).
 
 | File | What it is |
 |---|---|
-| `index.html` | The whole site. One page, semantic sections. |
+| `index.html` | The landing page. One page, semantic sections. |
+| `quickstart.html` | Write your first step, in Rust, against no instrument. |
 | `style.css` | Design tokens, light and dark, plus every component. |
 | `favicon.svg` | The mark: a step signal inside a rounded frame. |
 
@@ -46,3 +47,8 @@ The status chips (`chip-live`, `chip-wip`) and the "Where we actually are"
 section make specific claims about each project's maturity. When a milestone
 lands, update them here too — a website that overstates the state of the code
 costs more trust than it buys.
+
+The same goes for `quickstart.html`: every command and every output on it was
+run against the release it names. A quick start that no longer works is worse
+than none, because the reader blames themselves first. When Anvil's public
+surface changes, walk the page again.

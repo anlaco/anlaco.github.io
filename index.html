@@ -67,7 +67,7 @@
     <figure class="term" aria-label="Terminal session running a test sequence with Anvil">
       <figcaption class="term-bar">
         <span class="dot"></span><span class="dot"></span><span class="dot"></span>
-        <span class="term-title">anvil 0.1.0 · no instrument attached</span>
+        <span class="term-title">anvil 0.4.0 · no instrument attached</span>
       </figcaption>
 <pre><span class="c-d"># terminal 1 — the bench that isn't there</span>
 <span class="c-p">$</span> ./crucible perfiles/keithley_2400_demo.yaml
@@ -178,7 +178,7 @@ Crucible: KEITHLEY-2400 en <span class="c-n">127.0.0.1:5025</span>
       <article class="card">
         <header class="card-head">
           <h3>Anvil</h3>
-          <span class="chip chip-live">v0.1.0 · in beta testing</span>
+          <span class="chip chip-live">v0.4.0 · in beta testing</span>
         </header>
         <p class="card-role">Test sequencer</p>
         <p>
@@ -285,8 +285,8 @@ cargo build
 <pre class="cmd"><span class="c-d"># in the Anvil repository</span>
 ./anvil ejemplos/scpi.yaml
 
-=== scpi_demo: <span class="c-ok">paso</span> ===
-  [<span class="c-ok">paso</span>] medir_voltaje_scpi:
+=== scpi_demo: <span class="c-ok">pass</span> ===
+  [<span class="c-ok">pass</span>] medir_voltaje_scpi:
          SCPI medido: <span class="c-n">4.501385…</span> V</pre>
       </article>
     </div>
@@ -385,7 +385,7 @@ cargo build
       than discover it after an afternoon of integration work.
     </p>
     <dl class="status-list">
-      <dt><span class="chip chip-live">shipped</span> Anvil 0.3.0</dt>
+      <dt><span class="chip chip-live">shipped</span> Anvil 0.4.0</dt>
       <dd>
         A working sequencer, currently being hammered in structured beta rounds
         against <strong>18 realistic benches</strong> — a solenoid valve, a
