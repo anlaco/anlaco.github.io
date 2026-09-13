@@ -148,9 +148,9 @@ Crucible: KEITHLEY-2400 en <span class="c-n">127.0.0.1:5025</span>
         <text class="d-lbl" x="444" y="180">gRPC over WASI sockets · wasi-grpc</text>
 
         <!-- steps -->
-        <rect class="d-box" x="278" y="196" width="304" height="62" rx="10"/>
-        <text class="d-t" x="430" y="222" text-anchor="middle">Steps — WebAssembly sandbox</text>
-        <text class="d-s" x="430" y="242" text-anchor="middle">invoked by name · any language</text>
+        <rect class="d-box" x="230" y="196" width="400" height="62" rx="10"/>
+        <text class="d-t" x="430" y="222" text-anchor="middle">Steps — invoked by name</text>
+        <text class="d-s" x="430" y="242" text-anchor="middle">any language · Rust steps run in a WASM sandbox</text>
 
         <!-- split -->
         <path class="d-arrow-plain" d="M430 258 L430 282"/>
@@ -336,9 +336,11 @@ cargo build
         <span class="num">03</span>
         <h3>Sandboxed by construction.</h3>
         <p>
-          Everything above a thin native layer compiles to WebAssembly.
+          The engine runs in WebAssembly, and so do steps compiled to it.
           Isolation becomes a property of the instruction set rather than a
-          policy someone remembered to configure.
+          policy someone remembered to configure. Steps in Python or C# run in
+          their own process, on the other side of a wire — isolated from the
+          engine, not sandboxed by it.
         </p>
       </li>
       <li>
