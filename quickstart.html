@@ -60,7 +60,7 @@
 
     <h3>What you need</h3>
     <ul class="facts">
-      <li>Linux on x86-64. The binaries are statically linked; there is nothing to install.</li>
+      <li>Linux on x86-64. The binaries are statically linked; there is nothing to install. (The release also carries a Windows zip with the same binaries as <code>.exe</code>; the commands on this page are the Linux ones, and they are the ones that were run.)</li>
       <li>A Rust toolchain, plus the <code>wasm32-wasip2</code> target.</li>
       <li>A clone of the Anvil repository — the step SDK lives there. You will <em>not</em> build Anvil itself.</li>
     </ul>
@@ -120,10 +120,10 @@
           <code>anvil-exec-wasm</code>, the executor that will serve your steps.
         </p>
 <pre class="cmd"><span class="c-d"># from github.com/anlaco/anvil/releases</span>
-tar xzf anvil-v0.4.0-x86_64-linux-musl.tar.gz
-cd anvil-v0.4.0-x86_64-linux-musl
+tar xzf anvil-v0.5.0-x86_64-linux-musl.tar.gz
+cd anvil-v0.5.0-x86_64-linux-musl
 ./anvil --version
-<span class="c-d">anvil 0.4.0</span></pre>
+<span class="c-d">anvil 0.5.0</span></pre>
         <p class="fineprint">
           Everything below happens inside that folder. It also carries the
           example sequences, including a department already assembled — run
@@ -298,12 +298,12 @@ cp hello-wasm/target/wasm32-wasip2/debug/*.wasm department/</pre>
         </p>
 <pre class="cmd">./department/anvil-exec-wasm --list
 
-<span class="c-d">multimeter  sha256:0c5f8ab62c21c2369b2282c0327ca58f5…
+<span class="c-d">multimeter  sha256:df251ca8537e4ff951187465be8f4c31b…
     …/department/multimeter.wasm
     multimeter/measure_voltage(channel: number = optional)
         Measures DC voltage on a channel.
         outputs: channel_used
-plc  sha256:f0f3dabad52262dc2a30aabd6daec5414…
+plc  sha256:2e6ace99408b73165f564fd03960b6a1c…
     …/department/plc.wasm
     plc/measure_voltage()
         Reads the 24 V rail the PLC feeds.</span></pre>
@@ -355,6 +355,11 @@ main:
         <p>
           <code>limit</code> is the acceptance criterion, and it lives here
           rather than in the code.
+        </p>
+        <p class="fineprint">
+          Since 0.5.0 a sequence may also be saved as <code>hello.yseq</code>:
+          the same YAML, with an extension that says what the file is for.
+          <code>./anvil hello.yseq</code> runs it the same way.
         </p>
         <p class="fineprint">
           If the executor runs on <strong>another machine</strong>, you declare
@@ -485,11 +490,14 @@ cp hello-wasm/target/wasm32-wasip2/debug/*.wasm department/
         to look at your toolchain.
       </li>
       <li>
-        <strong><code>panic!</code> cuts the whole run.</strong> WebAssembly
-        traps, the executor does not re-instantiate, and the rest of the
-        sequence is lost
-        (<a href="https://github.com/anlaco/anvil/issues/58">issue&nbsp;58</a>).
-        Return <code>Outcome::error(…)</code>; never <code>unwrap()</code>.
+        <strong><code>panic!</code> ends the phase, not the run.</strong> The
+        step comes back as <code>error</code> with the WebAssembly trap written
+        into the report, the rest of <code>main</code> is skipped as after any
+        error, and <code>cleanup</code> still runs. It used to cut the whole
+        run (<a href="https://github.com/anlaco/anvil/issues/58">issue&nbsp;58</a>,
+        fixed after 0.4.0). Still, return <code>Outcome::error(…)</code> and
+        say why, rather than <code>unwrap()</code> and hand the report twenty
+        lines of backtrace.
       </li>
       <li>
         <strong>Parameters come in four types</strong>: <code>f64</code>,
@@ -503,8 +511,8 @@ cp hello-wasm/target/wasm32-wasip2/debug/*.wasm department/
       From here: return extra named values that land in the report alongside the
       measurement, split a long sequence into reusable sub-sequences, keep an
       open instrument session in the executor and carry a reference to it
-      through several steps, or write your steps in Python instead. All of it is
-      in the repository documentation.
+      through several steps, or write your steps in Python or C# instead. All of it
+      is in the repository documentation.
     </p>
   </div>
 </section>

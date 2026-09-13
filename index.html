@@ -67,7 +67,7 @@
     <figure class="term" aria-label="Terminal session running a test sequence with Anvil">
       <figcaption class="term-bar">
         <span class="dot"></span><span class="dot"></span><span class="dot"></span>
-        <span class="term-title">anvil 0.4.0 · no instrument attached</span>
+        <span class="term-title">anvil 0.5.0 · no instrument attached</span>
       </figcaption>
 <pre><span class="c-d"># terminal 1 — the bench that isn't there</span>
 <span class="c-p">$</span> ./crucible perfiles/keithley_2400_demo.yaml
@@ -178,7 +178,7 @@ Crucible: KEITHLEY-2400 en <span class="c-n">127.0.0.1:5025</span>
       <article class="card">
         <header class="card-head">
           <h3>Anvil</h3>
-          <span class="chip chip-live">v0.4.0 · in beta testing</span>
+          <span class="chip chip-live">v0.5.0 · Linux and Windows</span>
         </header>
         <p class="card-role">Test sequencer</p>
         <p>
@@ -191,7 +191,8 @@ Crucible: KEITHLEY-2400 en <span class="c-n">127.0.0.1:5025</span>
         </p>
         <ul class="facts">
           <li>Rust compiled to <code>wasm32-wasip2</code>, hosted by wasmtime</li>
-          <li>One self-contained binary — nothing to install</li>
+          <li>One self-contained binary for Linux or Windows — nothing to install</li>
+          <li>Steps in Rust (compiled to WebAssembly), Python or C#</li>
           <li>Setup → Main → Cleanup, per-step retries, JSON and CSV sinks</li>
           <li>Process models as sequences, not as engine callbacks</li>
         </ul>
@@ -225,7 +226,7 @@ Crucible: KEITHLEY-2400 en <span class="c-n">127.0.0.1:5025</span>
       <article class="card">
         <header class="card-head">
           <h3>wasi-grpc</h3>
-          <span class="chip chip-live">v0.1.0 · published</span>
+          <span class="chip chip-live">v0.1.1 · published</span>
         </header>
         <p class="card-role">gRPC on native WASI sockets</p>
         <p>
@@ -385,14 +386,20 @@ cargo build
       than discover it after an afternoon of integration work.
     </p>
     <dl class="status-list">
-      <dt><span class="chip chip-live">shipped</span> Anvil 0.4.0</dt>
+      <dt><span class="chip chip-live">shipped</span> Anvil 0.5.0</dt>
       <dd>
-        A working sequencer, currently being hammered in structured beta rounds
-        against <strong>18 realistic benches</strong> — a solenoid valve, a
-        battery pack, an RTD calibration, and on into a protection relay to
-        IEC 60255-151, EMC pre-compliance to IEC 61000-4 and a class 1.0 smart
-        meter to IEC 62053-21. Every defect the rounds find is filed in the
-        open, in the issue tracker, including the ones that are still open.
+        A working sequencer, now downloadable for <strong>Linux and
+        Windows</strong>: the engine as a single binary, and the Sequence Editor
+        as an AppImage, a <code>.deb</code> or a Windows installer. Steps can be
+        written in Rust, Python or C#. Its early versions were put through
+        <strong>51 realistic benches</strong> in structured beta rounds — a
+        solenoid valve, a battery pack, an RTD calibration, and on into a
+        protection relay to IEC 60255-151, EMC pre-compliance to IEC 61000-4 and
+        a class 1.0 smart meter to IEC 62053-21 — plus three rounds spent only
+        on trying to break it. The rounds restarted from zero when the public
+        contract moved to English in 0.4.0, and have not yet been run against
+        0.5.0. Every defect they find is filed in the open, in the issue
+        tracker, including the ones that are still open.
       </dd>
 
       <dt><span class="chip chip-live">working</span> Crucible</dt>
@@ -405,11 +412,15 @@ cargo build
         SCPI over TCP.
       </dd>
 
-      <dt><span class="chip chip-live">shipped</span> wasi-grpc 0.1.0</dt>
+      <dt><span class="chip chip-live">shipped</span> wasi-grpc 0.1.1</dt>
       <dd>
-        Unary RPC works and is used in production by Anvil. Everything it does
-        not do — streaming, TLS, connection pooling — is enumerated in the
-        README as a known gap rather than left for you to find.
+        Unary RPC works, and it is what every Anvil step call goes through.
+        0.1.1 is the fix Windows needed: wasmtime gives up on a blocking read
+        after ten spurious wake-ups, which on Windows took a running sequence
+        down at random, so the library now waits on the socket itself.
+        Everything it does not do — streaming, concurrent streams, flow
+        control, TLS — is enumerated in the README as a known gap rather than
+        left for you to find.
       </dd>
     </dl>
   </div>
