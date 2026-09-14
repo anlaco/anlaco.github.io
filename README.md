@@ -17,6 +17,11 @@ native WASI sockets).
 | `style.css` | Design tokens, light and dark, plus every component. |
 | `favicon.svg` | The mark: a step signal inside a rounded frame. |
 
+Everything about Anvil itself lives under `/anvil/`: **The Anvil Book**, which
+is not a file here. It is written in `docs/book/` of the
+[anvil](https://github.com/anlaco/anvil) repository, rendered with mdBook and
+published from that repository's `gh-pages` branch. This site only links to it.
+
 ## Working on it
 
 Open `index.html` in a browser, or serve the directory:
