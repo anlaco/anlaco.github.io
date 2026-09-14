@@ -102,7 +102,29 @@ a:focus-visible, .btn:focus-visible {
   background: color-mix(in srgb, var(--bg) 88%, transparent);
   backdrop-filter: saturate(180%) blur(12px);
   border-bottom: 1px solid var(--line);
+  box-shadow: 0 0 0 rgba(20,23,27,0);
 }
+/* Deepens the header's shadow as the page scrolls under it — a scroll-driven
+   effect, so browsers without it (Firefox, older Safari) just keep the flat
+   bar above, never a hidden or half-applied one. */
+@supports (animation-timeline: scroll()) {
+  .nav {
+    animation: nav-shadow linear both;
+    animation-timeline: scroll(root);
+    animation-range: 0 240px;
+  }
+}
+@keyframes nav-shadow {
+  from { box-shadow: 0 0 0 rgba(20,23,27,0); }
+  to   { box-shadow: var(--shadow); }
+}
+.nav nav a { position: relative; }
+.nav nav a:not(.nav-cta)::after {
+  content: ""; position: absolute; left: 0; right: 100%; bottom: -.3rem;
+  height: 2px; background: var(--accent);
+  transition: right .2s ease;
+}
+.nav nav a:not(.nav-cta):hover::after { right: 0; }
 .nav-inner {
   max-width: var(--wrap); margin: 0 auto; padding: .85rem 1.5rem;
   display: flex; align-items: center; justify-content: space-between; gap: 1rem;
@@ -117,6 +139,87 @@ a:focus-visible, .btn:focus-visible {
 .nav-cta { color: var(--accent) !important; font-weight: 600 !important; }
 @media (max-width: 780px) {
   .nav nav a:not(.nav-cta) { display: none; }
+  .nav-drop { display: none; }
+}
+
+/* ── Products dropdown ──────────────────────────────────────────────
+   No JS: a visually-hidden checkbox + its <label> as the trigger. Not
+   <details>/<summary> — Chrome wraps details content in an internal
+   ::details-content box that stays content-visibility:hidden until the
+   [open] attribute is set, which no author CSS can override on :hover,
+   so the panel would only ever open on click. Plain elements don't have
+   that problem. */
+.nav-drop { position: relative; }
+.nav-drop-toggle {
+  position: absolute; width: 1px; height: 1px; opacity: 0; overflow: hidden;
+}
+.nav-drop-summary {
+  position: relative; cursor: pointer; color: var(--ink-2);
+  font-size: .9rem; font-weight: 500; user-select: none;
+  display: flex; align-items: center; gap: .35rem;
+  transition: color .15s;
+}
+.nav-drop-summary::before {
+  content: ""; position: absolute; left: 0; right: 100%; bottom: -.3rem;
+  height: 2px; background: var(--accent);
+  transition: right .2s ease;
+}
+.nav-drop-summary::after {
+  content: ""; width: 6px; height: 6px;
+  border-right: 1.6px solid currentColor; border-bottom: 1.6px solid currentColor;
+  transform: translateY(-2px) rotate(45deg); transition: transform .18s;
+}
+.nav-drop-toggle:focus-visible + .nav-drop-summary {
+  outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 3px;
+}
+.nav-drop:hover .nav-drop-summary,
+.nav-drop:focus-within .nav-drop-summary,
+.nav-drop-toggle:checked ~ .nav-drop-summary { color: var(--ink); }
+.nav-drop:hover .nav-drop-summary::after,
+.nav-drop:focus-within .nav-drop-summary::after,
+.nav-drop-toggle:checked ~ .nav-drop-summary::after {
+  transform: translateY(1px) rotate(-135deg);
+}
+.nav-drop:hover .nav-drop-summary::before,
+.nav-drop:focus-within .nav-drop-summary::before,
+.nav-drop-toggle:checked ~ .nav-drop-summary::before { right: 0; }
+
+/* Opens on hover, like TestStand's. The checkbox stays underneath only as
+   the touch/keyboard fallback: tap the label to toggle :checked, Tab to it
+   and Space/Enter does the same, or Tab past it into the panel's own links
+   which keeps :focus-within true. */
+.nav-drop-panel {
+  display: none;
+  position: absolute; top: 100%; left: 50%;
+  transform: translateX(-50%);
+  background: var(--surface); border: 1px solid var(--line);
+  border-radius: 11px; box-shadow: var(--shadow);
+  padding: .9rem .5rem .5rem; margin-top: .5rem; width: 280px;
+}
+.nav-drop:hover .nav-drop-panel,
+.nav-drop:focus-within .nav-drop-panel,
+.nav-drop-toggle:checked ~ .nav-drop-panel {
+  display: block; animation: drop-in .16s ease-out both;
+}
+/* Bridges the gap above the panel so the pointer never leaves a hovered
+   box on the way down from the summary — without it, hover flickers shut. */
+.nav-drop-panel::before {
+  content: ""; position: absolute; left: 0; right: 0; top: -.9rem; height: .9rem;
+}
+@keyframes drop-in {
+  from { opacity: 0; transform: translateX(-50%) translateY(-4px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+.nav-drop-item {
+  display: block; padding: .65rem .8rem; border-radius: 8px;
+  text-decoration: none; transition: background .12s;
+}
+.nav-drop-item:hover { background: var(--bg-alt); }
+.nav-drop-name {
+  display: block; font-weight: 600; font-size: .92rem; color: var(--ink);
+}
+.nav-drop-desc {
+  display: block; font-size: .8rem; color: var(--ink-3); margin-top: .15rem;
 }
 
 /* ── Type scale ─────────────────────────────────────────────────── */
@@ -156,23 +259,56 @@ p code, li code, dd code {
   display: inline-block; padding: .72rem 1.35rem; border-radius: 7px;
   font-size: .94rem; font-weight: 600; text-decoration: none;
   border: 1px solid transparent; transition: all .15s;
+  position: relative; overflow: hidden;
 }
 .btn-solid { background: var(--accent); color: var(--bg); }
-.btn-solid:hover { background: var(--accent-hi); transform: translateY(-1px); }
+.btn-solid:hover { background: var(--accent-hi); transform: translateY(-1px); box-shadow: var(--shadow); }
 .btn-line { color: var(--ink); border-color: var(--line); background: var(--surface); }
-.btn-line:hover { border-color: var(--accent); color: var(--accent); }
+.btn-line:hover { border-color: var(--accent); color: var(--accent); transform: translateY(-1px); }
+.btn::after {
+  content: ""; position: absolute; inset: 0; border-radius: inherit;
+  background: linear-gradient(115deg, transparent 30%, rgba(255,255,255,.35) 48%, transparent 66%);
+  transform: translateX(-120%); transition: transform .5s ease;
+}
+.btn:hover::after { transform: translateX(120%); }
 
 /* ── Hero ───────────────────────────────────────────────────────── */
-.hero { padding: 5.5rem 0 4.5rem; border-bottom: 1px solid var(--line); }
+.hero {
+  padding: 5.5rem 0 4.5rem; border-bottom: 1px solid var(--line);
+  position: relative; overflow: hidden;
+}
+.hero::before {
+  content: ""; position: absolute; inset: -20% -10% auto -10%; height: 140%;
+  background: radial-gradient(560px 360px at 82% 20%, var(--accent-bg), transparent 70%);
+  opacity: .55; pointer-events: none; z-index: 0;
+  animation: hero-drift 16s ease-in-out infinite alternate;
+}
+@keyframes hero-drift {
+  from { transform: translate3d(0,0,0) scale(1); }
+  to   { transform: translate3d(-2%,2%,0) scale(1.06); }
+}
 .hero-grid {
   display: grid; grid-template-columns: 1.05fr .95fr;
   gap: 3.5rem; align-items: center;
+  position: relative; z-index: 1;
 }
 .hero-copy { min-width: 0; }
 @media (max-width: 940px) {
   .hero { padding: 3.2rem 0 3rem; }
   .hero-grid { grid-template-columns: 1fr; gap: 2.5rem; }
 }
+
+@keyframes rise-in {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.hero-copy > * { animation: rise-in .6s cubic-bezier(.2,.7,.2,1) both; }
+.hero-copy > .eyebrow { animation-delay: .02s; }
+.hero-copy > h1       { animation-delay: .08s; }
+.hero-copy > .lead     { animation-delay: .16s; }
+.hero-copy > .hook     { animation-delay: .24s; }
+.hero-copy > .cta      { animation-delay: .32s; }
+.hero-grid > .term { animation: rise-in .7s cubic-bezier(.2,.7,.2,1) .3s both; }
 
 /* ── Terminal ───────────────────────────────────────────────────── */
 .term {
@@ -202,6 +338,11 @@ p code, li code, dd code {
 .c-ok { color: #57c08a; }
 .c-n  { color: #e0a75a; }
 .c-d  { color: #6a7079; }
+
+.term pre::after {
+  content: "▍"; color: #f0a653; animation: blink 1.1s steps(1) infinite;
+}
+@keyframes blink { 50% { opacity: 0; } }
 
 /* ── Hero hook ──────────────────────────────────────────────────── */
 .hook {
@@ -294,9 +435,9 @@ blockquote {
   background: var(--surface); border: 1px solid var(--line);
   border-radius: 11px; padding: 1.7rem 1.6rem;
   display: flex; flex-direction: column;
-  transition: border-color .15s, transform .15s;
+  transition: border-color .15s, transform .15s, box-shadow .15s;
 }
-.card:hover { border-color: var(--accent); transform: translateY(-2px); }
+.card:hover { border-color: var(--accent); transform: translateY(-3px); box-shadow: var(--shadow); }
 .card-head {
   display: flex; align-items: center; justify-content: space-between;
   gap: .7rem; flex-wrap: wrap; margin-bottom: .15rem;
@@ -333,6 +474,15 @@ blockquote {
 }
 .chip-live { color: var(--ok); background: var(--ok-bg); }
 .chip-wip  { color: var(--wip); background: var(--wip-bg); }
+.chip-live::before {
+  content: ""; display: inline-block; width: 6px; height: 6px;
+  margin-right: .4em; border-radius: 50%; background: var(--ok);
+  animation: chip-pulse 1.8s ease-in-out infinite;
+}
+@keyframes chip-pulse {
+  0%, 100% { opacity: 1; box-shadow: 0 0 0 0 color-mix(in srgb, var(--ok) 45%, transparent); }
+  50%      { opacity: .6; box-shadow: 0 0 0 3px color-mix(in srgb, var(--ok) 0%, transparent); }
+}
 
 /* ── Principles ─────────────────────────────────────────────────── */
 .principles {
@@ -408,8 +558,33 @@ blockquote {
 }
 .footer-note p { font-family: var(--mono); font-size: .74rem; color: var(--ink-3); }
 
+/* ── Scroll reveal ──────────────────────────────────────────────────
+   Ties opacity/position to how far an element has scrolled into view.
+   Gated behind @supports so a browser without it (Firefox, older Safari)
+   never sees the 0%-keyframe state — it just keeps the plain layout. */
+@supports (animation-timeline: view()) {
+  .card, .step, .lic-card, .status-list dt,
+  .principles li, .diagram {
+    animation: rise-in linear both;
+    animation-timeline: view();
+    animation-range: entry 0% cover 35%;
+  }
+  .cards .card:nth-child(2)      { animation-delay: .06s; }
+  .cards .card:nth-child(3)      { animation-delay: .12s; }
+  .steps .step:nth-child(2)      { animation-delay: .08s; }
+  .principles li:nth-child(2n)   { animation-delay: .08s; }
+
+  .d-arrow, .d-arrow-plain {
+    stroke-dasharray: 340; stroke-dashoffset: 340;
+    animation: draw-line linear both;
+    animation-timeline: view();
+    animation-range: entry 10% cover 50%;
+  }
+  @keyframes draw-line { to { stroke-dashoffset: 0; } }
+}
+
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   *, *::before, *::after { transition: none !important; animation: none !important; }
-  .btn-solid:hover, .card:hover { transform: none; }
+  .btn-solid:hover, .btn-line:hover, .card:hover { transform: none; }
 }
