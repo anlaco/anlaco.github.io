@@ -588,3 +588,42 @@ blockquote {
   *, *::before, *::after { transition: none !important; animation: none !important; }
   .btn-solid:hover, .btn-line:hover, .card:hover { transform: none; }
 }
+
+/* ── Solder (new) ───────────────────────────────────────────────── */
+.new-tag {
+  display: inline-block; vertical-align: 2px;
+  font-family: var(--mono); font-size: .64rem; font-weight: 700;
+  letter-spacing: .06em; text-transform: uppercase;
+  color: var(--bg); background: var(--accent);
+  padding: .14rem .45rem; border-radius: 4px; margin-left: .3rem;
+}
+.news {
+  background: var(--accent-bg);
+  border-bottom: 1px solid var(--line);
+  font-size: .92rem;
+}
+.news-inner {
+  display: flex; align-items: center; gap: .8rem; flex-wrap: wrap;
+  padding-top: .7rem; padding-bottom: .7rem;
+}
+.news .new-tag { margin-left: 0; }
+.news-text { color: var(--ink-2); }
+.news-text strong { color: var(--ink); }
+.news-link { color: var(--accent); font-weight: 600; text-decoration: none; margin-left: auto; }
+.news-link:hover { color: var(--accent-hi); }
+@media (max-width: 700px) { .news-link { margin-left: 0; } }
+
+.card-feature {
+  display: grid; grid-template-columns: 1.15fr 1fr; gap: 2.4rem;
+  margin-bottom: 1.3rem; border-color: var(--accent);
+  scroll-margin-top: 5rem;
+}
+.card-feature > div { min-width: 0; display: flex; flex-direction: column; }
+.card-feature .feature-main > p { font-size: .95rem; color: var(--ink-2); }
+.card-feature .feature-note { margin-top: 1rem; font-size: .88rem; color: var(--ink-3); }
+.card-feature code { font-family: var(--mono); font-size: .85em; }
+.card-feature .facts { margin-top: 0; }
+.card-feature .cta { margin-bottom: 1.2rem; }
+@media (max-width: 1000px) {
+  .card-feature { grid-template-columns: minmax(0, 1fr); gap: 1.4rem; max-width: 640px; }
+}

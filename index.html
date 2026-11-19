@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>ANLACO — The open stack for test benches</title>
-<meta name="description" content="ANLACO builds open-source software for test benches: Anvil, a sequencer where the sequence is data; Crucible, a digital twin of the bench; and the WebAssembly plumbing underneath. Evaluate the whole stack without owning an instrument.">
+<meta name="description" content="ANLACO builds open-source software for test benches: Solder, a visual programming language compiled to WebAssembly; Anvil, a sequencer where the sequence is data; Crucible, a digital twin of the bench; and the WebAssembly plumbing underneath. Evaluate the whole stack without owning an instrument.">
 <meta name="theme-color" content="#0e1013" media="(prefers-color-scheme: dark)">
 <meta name="theme-color" content="#fcfbf9" media="(prefers-color-scheme: light)">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
@@ -36,6 +36,10 @@
         <input type="checkbox" id="products-toggle" class="nav-drop-toggle" aria-label="Products menu">
         <label for="products-toggle" class="nav-drop-summary">Products</label>
         <div class="nav-drop-panel">
+          <a class="nav-drop-item" href="#solder">
+            <span class="nav-drop-name">Solder <span class="new-tag">new</span></span>
+            <span class="nav-drop-desc">Visual programming, compiled to WebAssembly</span>
+          </a>
           <a class="nav-drop-item" href="/anvil/">
             <span class="nav-drop-name">Anvil</span>
             <span class="nav-drop-desc">The Anvil Book — read it end to end</span>
@@ -54,6 +58,16 @@
 </header>
 
 <main id="main">
+
+<!-- ─────────────────────────── NEWS ─────────────────────────── -->
+<div class="news">
+  <div class="wrap news-inner">
+    <span class="new-tag">New</span>
+    <span class="news-text"><strong>Solder 0.13.0-beta</strong> — a visual
+      programming language you wire like LabVIEW, compiled to WebAssembly.</span>
+    <a class="news-link" href="#solder">Meet Solder ↓</a>
+  </div>
+</div>
 
 <!-- ─────────────────────────── HERO ─────────────────────────── -->
 <section class="hero">
@@ -131,7 +145,7 @@ Crucible: KEITHLEY-2400 en <span class="c-n">127.0.0.1:5025</span>
 <section class="section" id="stack">
   <div class="wrap">
     <p class="kicker">The stack</p>
-    <h2>Three pieces, one boundary each.</h2>
+    <h2>Four pieces, one boundary each.</h2>
     <p class="intro">
       Every layer talks to the next one through a protocol, never through a
       direct call. That is what makes a step replaceable, a language a free
@@ -186,6 +200,46 @@ Crucible: KEITHLEY-2400 en <span class="c-n">127.0.0.1:5025</span>
         Anvil cannot tell the two apart — and that is the entire point.
       </figcaption>
     </figure>
+
+    <article class="card card-feature" id="solder">
+      <div class="feature-main">
+        <header class="card-head">
+          <h3>Solder <span class="new-tag">new</span></h3>
+          <span class="chip chip-wip">v0.13.0-beta · Windows and Linux</span>
+        </header>
+        <p class="card-role">Visual programming language</p>
+        <p>
+          A free visual programming language that clones
+          <strong>LabVIEW 2026 Q3</strong>: the same windows, palettes, names
+          and behaviour. You place blocks on a canvas, wire them together, and
+          Run compiles the diagram to <strong>WebAssembly</strong> and executes
+          it by dataflow. With Solder you write the program that talks to the
+          instruments; Anvil sequences and tests it; Crucible stands in for the
+          bench.
+        </p>
+        <p class="feature-note">
+          Beta, and saying so: it does not do all of LabVIEW yet. What it does
+          is meant to be reliable, and the <code>.sdg</code> file format is
+          frozen — anything you save today keeps opening in later versions.
+        </p>
+      </div>
+      <div class="feature-side">
+        <ul class="facts">
+          <li>Front Panel and Block Diagram, with the Functions and Controls palettes</li>
+          <li>While and For Loops (shift registers, auto-indexing), Case and Sequence structures</li>
+          <li>SubOVIs with connector pane, reentrancy and state between calls</li>
+          <li>Waveform Chart, Waveform Graph and XY Graph</li>
+          <li>Highlight Execution, probes, breakpoints and the Error List</li>
+          <li>Installers for Windows, Debian/Ubuntu and AppImage</li>
+        </ul>
+        <div class="cta">
+          <a class="btn btn-solid" href="https://github.com/anlaco/solder/releases">Download Solder</a>
+          <a class="btn btn-line" href="https://github.com/anlaco/solder">Repository ↗</a>
+        </div>
+        <p class="card-foot"><span class="lic">AGPL-3.0-only</span>
+          <a href="https://github.com/anlaco/solder/blob/main/CHANGELOG.md">Changelog ↗</a></p>
+      </div>
+    </article>
 
     <div class="cards">
 
@@ -403,6 +457,17 @@ cargo build
       than discover it after an afternoon of integration work.
     </p>
     <dl class="status-list">
+      <dt><span class="chip chip-wip">beta</span> Solder 0.13.0</dt>
+      <dd>
+        New. The editor, the core types (integers, floats, booleans, strings,
+        arrays, clusters, the error cluster), the main function palettes, the
+        loop and case structures, SubOVIs, graphs and the debugging tools all
+        work, and run as compiled WebAssembly. It is not all of LabVIEW yet:
+        what is still missing shows greyed out in the palettes and says why.
+        The installers are not signed yet, so Windows SmartScreen will warn
+        before the first run.
+      </dd>
+
       <dt><span class="chip chip-live">shipped</span> Anvil 0.5.0</dt>
       <dd>
         A working sequencer, now downloadable for <strong>Linux and
