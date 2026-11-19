@@ -232,9 +232,18 @@ Crucible: KEITHLEY-2400 en <span class="c-n">127.0.0.1:5025</span>
           <li>Highlight Execution, probes, breakpoints and the Error List</li>
           <li>Installers for Windows, Debian/Ubuntu and AppImage</li>
         </ul>
-        <div class="cta">
-          <a class="btn btn-solid" href="https://github.com/anlaco/solder/releases">Download Solder</a>
-          <a class="btn btn-line" href="https://github.com/anlaco/solder">Repository ↗</a>
+        <div class="dl" id="solder-dl">
+          <div class="cta">
+            <a class="btn btn-solid dl-main" href="https://github.com/anlaco/solder/releases">Download Solder</a>
+            <a class="btn btn-line" href="https://github.com/anlaco/solder">Repository ↗</a>
+          </div>
+          <p class="dl-meta"><span class="dl-version">v0.13.0-beta</span><span class="dl-hint"></span></p>
+          <ul class="dl-list">
+            <li data-os="windows"><a href="https://github.com/anlaco/solder/releases/download/v0.13.0-beta/Solder-0.13.0-beta-win-x64.exe">Windows</a> <span>.exe · 82 MB</span></li>
+            <li data-os="linux"><a href="https://github.com/anlaco/solder/releases/download/v0.13.0-beta/Solder-0.13.0-beta-linux-amd64.deb">Debian / Ubuntu</a> <span>.deb · 89 MB</span></li>
+            <li data-os="linux"><a href="https://github.com/anlaco/solder/releases/download/v0.13.0-beta/Solder-0.13.0-beta-linux-x86_64.AppImage">Any Linux</a> <span>.AppImage · 113 MB</span></li>
+            <li><a href="https://github.com/anlaco/solder/releases">All releases ↗</a></li>
+          </ul>
         </div>
         <p class="card-foot"><span class="lic">AGPL-3.0-only</span>
           <a href="https://github.com/anlaco/solder/blob/main/CHANGELOG.md">Changelog ↗</a></p>
@@ -556,5 +565,76 @@ cargo build
   </div>
 </footer>
 
+
+<!-- Solder download button: picks the installer for the visitor's system.
+     Progressive enhancement — without JavaScript the button opens the
+     releases page and the list below it offers every installer. It also asks
+     GitHub for the newest release, so the links follow new versions; if that
+     request fails, the links written above (v0.13.0-beta) stay. -->
+<script>
+(function () {
+  var box = document.getElementById('solder-dl');
+  if (!box) return;
+  var main = box.querySelector('.dl-main');
+  var hint = box.querySelector('.dl-hint');
+  var items = box.querySelectorAll('.dl-list li[data-os]');
+
+  function detectOS() {
+    var p = ((navigator.userAgentData && navigator.userAgentData.platform) ||
+             navigator.platform || '') + ' ' + navigator.userAgent;
+    if (/android|iphone|ipad|ipod/i.test(p)) return 'mobile';
+    if (/mac/i.test(p)) return 'mac';  // before "win": macOS strings can say "Darwin"
+    if (/win/i.test(p)) return 'windows';
+    if (/linux|x11|cros/i.test(p)) return 'linux';
+    return 'other';
+  }
+
+  var os = detectOS();
+  var picks = {
+    windows: { i: 0, label: 'Download for Windows' },
+    linux:   { i: 2, label: 'Download for Linux' }
+  };
+
+  function apply() {
+    var pick = picks[os];
+    for (var k = 0; k < items.length; k++) items[k].classList.remove('dl-mine');
+    if (pick) {
+      var li = items[pick.i];
+      var a = li.querySelector('a');
+      main.href = a.href;
+      main.textContent = pick.label;
+      li.classList.add('dl-mine');
+      hint.textContent = ' · ' + li.querySelector('span').textContent +
+        (os === 'windows' ? ' · not signed yet: SmartScreen may warn, choose More info ▸ Run anyway' : '');
+    } else {
+      main.href = 'https://github.com/anlaco/solder/releases';
+      main.textContent = 'Download Solder';
+      hint.textContent = os === 'mac' ? ' · no macOS build yet — Windows and Linux only'
+                       : os === 'mobile' ? ' · desktop app for Windows and Linux' : '';
+    }
+  }
+  apply();
+
+  if (!window.fetch) return;
+  var match = [/win-x64\.exe$/, /linux-amd64\.deb$/, /\.AppImage$/];
+  fetch('https://api.github.com/repos/anlaco/solder/releases?per_page=1')
+    .then(function (r) { return r.ok ? r.json() : null; })
+    .then(function (list) {
+      var rel = list && list[0];
+      if (!rel || !rel.assets) return;
+      for (var k = 0; k < items.length; k++) {
+        var asset = rel.assets.filter(function (x) { return match[k].test(x.name); })[0];
+        if (!asset) return;  // naming changed: keep the written links
+        var ext = items[k].querySelector('span').textContent.split(' · ')[0];
+        items[k].querySelector('a').href = asset.browser_download_url;
+        items[k].querySelector('span').textContent =
+          ext + ' · ' + Math.round(asset.size / 1048576) + ' MB';
+      }
+      box.querySelector('.dl-version').textContent = rel.tag_name;
+      apply();
+    })
+    .catch(function () {});
+})();
+</script>
 </body>
 </html>

@@ -1,7 +1,9 @@
 # anlaco.github.io
 
-The ANLACO website. Static HTML and CSS — no build step, no framework, no
-JavaScript — served by GitHub Pages.
+The ANLACO website. Static HTML and CSS — no build step, no framework — served by
+GitHub Pages. The only JavaScript is a small inline script that points the
+Solder download button at the installer for the visitor's system; without it
+the page still works.
 
 It presents the test-bench stack: [Anvil](https://github.com/anlaco/anvil)
 (sequencer), [Crucible](https://github.com/anlaco/Crucible) (the bench's

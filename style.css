@@ -1,4 +1,5 @@
-/* ANLACO — static site. No build, no framework, no JavaScript.
+/* ANLACO — static site. No build, no framework; the only JavaScript is the
+   small, optional Solder download-button script in index.html.
    Brand: paper + ink, amber-phosphor accent (the colour of a bench
    instrument's display), a step-signal mark, generous measure. */
 
@@ -627,3 +628,13 @@ blockquote {
 @media (max-width: 1000px) {
   .card-feature { grid-template-columns: minmax(0, 1fr); gap: 1.4rem; max-width: 640px; }
 }
+
+/* Solder download: the button points at your system's installer (JS),
+   the list offers every installer either way. */
+.dl .cta { margin-bottom: .55rem; }
+.dl-meta { font-family: var(--mono); font-size: .74rem; color: var(--ink-3); margin-bottom: .7rem; }
+.dl-list { list-style: none; display: flex; flex-wrap: wrap; gap: .3rem 1.1rem; margin-bottom: 1.2rem; font-size: .84rem; }
+.dl-list a { color: var(--accent); text-decoration: none; font-weight: 600; }
+.dl-list a:hover { color: var(--accent-hi); text-decoration: underline; }
+.dl-list span { color: var(--ink-3); font-family: var(--mono); font-size: .74rem; }
+.dl-list li.dl-mine { display: none; }
