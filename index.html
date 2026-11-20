@@ -63,7 +63,7 @@
 <div class="news">
   <div class="wrap news-inner">
     <span class="new-tag">New</span>
-    <span class="news-text"><strong>Solder 0.13.0-beta</strong> — a visual
+    <span class="news-text"><strong>Solder 0.14.0-beta</strong> — a visual
       programming language you wire like LabVIEW, compiled to WebAssembly.</span>
     <a class="news-link" href="#solder">Meet Solder ↓</a>
   </div>
@@ -205,7 +205,7 @@ Crucible: KEITHLEY-2400 en <span class="c-n">127.0.0.1:5025</span>
       <div class="feature-main">
         <header class="card-head">
           <h3>Solder <span class="new-tag">new</span></h3>
-          <span class="chip chip-wip">v0.13.0-beta · Windows and Linux</span>
+          <span class="chip chip-wip">v0.14.0-beta · Windows and Linux</span>
         </header>
         <p class="card-role">Visual programming language</p>
         <p>
@@ -219,8 +219,8 @@ Crucible: KEITHLEY-2400 en <span class="c-n">127.0.0.1:5025</span>
         </p>
         <p class="feature-note">
           Beta, and saying so: it does not do all of LabVIEW yet. What it does
-          is meant to be reliable, and the <code>.sdg</code> file format is
-          frozen — anything you save today keeps opening in later versions.
+          is meant to be reliable. The <code>.ovi</code> file format can still
+          change during the beta; it becomes a frozen standard with Solder 1.0.
         </p>
       </div>
       <div class="feature-side">
@@ -237,11 +237,11 @@ Crucible: KEITHLEY-2400 en <span class="c-n">127.0.0.1:5025</span>
             <a class="btn btn-solid dl-main" href="https://github.com/anlaco/solder/releases">Download Solder</a>
             <a class="btn btn-line" href="https://github.com/anlaco/solder">Repository ↗</a>
           </div>
-          <p class="dl-meta"><span class="dl-version">v0.13.0-beta</span><span class="dl-hint"></span></p>
+          <p class="dl-meta"><span class="dl-version">v0.14.0-beta</span><span class="dl-hint"></span></p>
           <ul class="dl-list">
-            <li data-os="windows"><a href="https://github.com/anlaco/solder/releases/download/v0.13.0-beta/Solder-0.13.0-beta-win-x64.exe">Windows</a> <span>.exe · 82 MB</span></li>
-            <li data-os="linux"><a href="https://github.com/anlaco/solder/releases/download/v0.13.0-beta/Solder-0.13.0-beta-linux-amd64.deb">Debian / Ubuntu</a> <span>.deb · 89 MB</span></li>
-            <li data-os="linux"><a href="https://github.com/anlaco/solder/releases/download/v0.13.0-beta/Solder-0.13.0-beta-linux-x86_64.AppImage">Any Linux</a> <span>.AppImage · 113 MB</span></li>
+            <li data-os="windows"><a href="https://github.com/anlaco/solder/releases/download/v0.14.0-beta/Solder-0.14.0-beta-win-x64.exe">Windows</a> <span>.exe · 82 MB</span></li>
+            <li data-os="linux"><a href="https://github.com/anlaco/solder/releases/download/v0.14.0-beta/Solder-0.14.0-beta-linux-amd64.deb">Debian / Ubuntu</a> <span>.deb · 89 MB</span></li>
+            <li data-os="linux"><a href="https://github.com/anlaco/solder/releases/download/v0.14.0-beta/Solder-0.14.0-beta-linux-x86_64.AppImage">Any Linux</a> <span>.AppImage · 114 MB</span></li>
             <li><a href="https://github.com/anlaco/solder/releases">All releases ↗</a></li>
           </ul>
         </div>
@@ -466,7 +466,7 @@ cargo build
       than discover it after an afternoon of integration work.
     </p>
     <dl class="status-list">
-      <dt><span class="chip chip-wip">beta</span> Solder 0.13.0</dt>
+      <dt><span class="chip chip-wip">beta</span> Solder 0.14.0</dt>
       <dd>
         New. The editor, the core types (integers, floats, booleans, strings,
         arrays, clusters, the error cluster), the main function palettes, the
@@ -570,7 +570,7 @@ cargo build
      Progressive enhancement — without JavaScript the button opens the
      releases page and the list below it offers every installer. It also asks
      GitHub for the newest release, so the links follow new versions; if that
-     request fails, the links written above (v0.13.0-beta) stay. -->
+     request fails, the links written above (v0.14.0-beta) stay. -->
 <script>
 (function () {
   var box = document.getElementById('solder-dl');
